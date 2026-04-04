@@ -30,27 +30,23 @@ export async function triggerTutorConfirmation(solicitud, estudiante, tutor) {
         tutor: {
           id: tutor.id,
           nombre: tutor.nombre,
-          telefono: tutor.telefono || '+573000000000' // Dato clave para WhatsApp
-        }
+          telefono: tutor.telefono
+        },
+        estudiante_telefono: estudiante.telefono
       }
     };
 
-    console.log('[n8n] Enviando webhook de confirmación:', payload);
+    const response = await fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
 
-    // En un entorno de producción o pruebas con el webhook real, se enviaría así:
-    // const response = await fetch(N8N_WEBHOOK_URL, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(payload)
-    // });
-    
-    // Simular retraso de red para la demo
-    await new Promise(r => setTimeout(r, 800));
-    
-    // if (!response.ok) {
-    //   console.error('[n8n] Error al procesar webhook');
-    // }
-    
+    if (!response.ok) {
+      console.error('[n8n] Error al procesar webhook:', response.status);
+      return false;
+    }
+
     return true;
   } catch (err) {
     console.error('[n8n] Error de red contactando n8n:', err);
