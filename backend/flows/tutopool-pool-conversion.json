@@ -309,19 +309,5 @@
     "templateCredsSetupCompleted": true,
     "instanceId": "c4d29baa28e526a9d9109b81cf88a4a629ae921b2361d682ed41828e69b74891"
   },
-  "id": "zu80iJNsOrjTFDNI",
-  "tags": [
-    {
-      "updatedAt": "2026-03-31T13:09:43.934Z",
-      "createdAt": "2026-03-31T13:09:43.934Z",
-      "id": "mp4LXPN0gpGEFa5o",
-      "name": "TutoPool"
-    },
-    {
-      "updatedAt": "2026-03-31T13:09:43.923Z",
-      "createdAt": "2026-03-31T13:09:43.923Z",
-      "id": "ne4o4ACXcPSJhAaf",
-      "name": "Automation"
-    }
-  ]
+  "id": "zu80iJNsOrjTFDNI"
 }

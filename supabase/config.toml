@@ -1,6 +1,3 @@
-[project]
-project_id = "tutopool"
-
 [api]
 enabled = true
 port = 54321
@@ -49,16 +46,14 @@ double_confirm_changes = true
 enable_confirmations = false   # desactivado en local para no necesitar email
 
 [auth.external.google]
-enabled = true
-client_id = "env(GOOGLE_CLIENT_ID)"
-secret = "env(GOOGLE_SECRET)"
-redirect_uri = ""
+enabled = false
+client_id = ""
+secret = ""
 
 [auth.external.azure]
-enabled = true
-client_id = "env(AZURE_CLIENT_ID)"
-secret = "env(AZURE_SECRET)"
-redirect_uri = ""
+enabled = false
+client_id = ""
+secret = ""
 
 [analytics]
 enabled = false

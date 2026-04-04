@@ -12,7 +12,10 @@
       "name": "Webhook - Nueva Solicitud",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-800, 0],
+      "position": [
+        -800,
+        0
+      ],
       "webhookId": "tutopool-tutor-confirmation"
     },
     {
@@ -22,8 +25,14 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Content-Type", "value": "application/json" },
-            { "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "apikey",
+              "value": "={{ $env.EVOLUTION_API_KEY }}"
+            }
           ]
         },
         "sendBody": true,
@@ -35,7 +44,10 @@
       "name": "WhatsApp al Tutor",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-560, 0]
+      "position": [
+        -560,
+        0
+      ]
     },
     {
       "parameters": {
@@ -47,8 +59,16 @@
       "name": "Marcar Notificación Enviada",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [-320, 0],
-      "credentials": { "postgres": { "id": "supabase-db", "name": "Supabase DB" } }
+      "position": [
+        -320,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase DB"
+        }
+      }
     },
     {
       "parameters": {
@@ -60,7 +80,10 @@
       "name": "Responder al Frontend",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [-80, 0]
+      "position": [
+        -80,
+        0
+      ]
     },
     {
       "parameters": {
@@ -72,19 +95,27 @@
       "name": "Webhook - Respuesta Tutor",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-800, 280],
+      "position": [
+        -800,
+        280
+      ],
       "webhookId": "tutopool-tutor-respuesta"
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": false },
+          "options": {
+            "caseSensitive": false
+          },
           "conditions": [
             {
               "id": "cond-001",
               "leftValue": "={{ $json.body.buttonResponseMessage.selectedButtonId }}",
               "rightValue": "confirmar",
-              "operator": { "type": "string", "operation": "equals" }
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
             }
           ]
         },
@@ -94,7 +125,10 @@
       "name": "¿Confirma el Tutor?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [-560, 280]
+      "position": [
+        -560,
+        280
+      ]
     },
     {
       "parameters": {
@@ -106,8 +140,16 @@
       "name": "Confirmar Solicitud",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [-320, 160],
-      "credentials": { "postgres": { "id": "supabase-db", "name": "Supabase DB" } }
+      "position": [
+        -320,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase DB"
+        }
+      }
     },
     {
       "parameters": {
@@ -119,8 +161,16 @@
       "name": "Rechazar Solicitud",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [-320, 400],
-      "credentials": { "postgres": { "id": "supabase-db", "name": "Supabase DB" } }
+      "position": [
+        -320,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase DB"
+        }
+      }
     },
     {
       "parameters": {
@@ -129,8 +179,14 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Content-Type", "value": "application/json" },
-            { "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "apikey",
+              "value": "={{ $env.EVOLUTION_API_KEY }}"
+            }
           ]
         },
         "sendBody": true,
@@ -142,7 +198,10 @@
       "name": "WhatsApp Confirmación al Estudiante",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-80, 160]
+      "position": [
+        -80,
+        160
+      ]
     },
     {
       "parameters": {
@@ -151,8 +210,14 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Content-Type", "value": "application/json" },
-            { "name": "apikey", "value": "={{ $env.EVOLUTION_API_KEY }}" }
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "apikey",
+              "value": "={{ $env.EVOLUTION_API_KEY }}"
+            }
           ]
         },
         "sendBody": true,
@@ -164,38 +229,100 @@
       "name": "WhatsApp Rechazo al Estudiante",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-80, 400]
+      "position": [
+        -80,
+        400
+      ]
     }
   ],
   "connections": {
     "Webhook - Nueva Solicitud": {
-      "main": [[{ "node": "WhatsApp al Tutor", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "WhatsApp al Tutor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "WhatsApp al Tutor": {
-      "main": [[{ "node": "Marcar Notificación Enviada", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Marcar Notificación Enviada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Marcar Notificación Enviada": {
-      "main": [[{ "node": "Responder al Frontend", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Responder al Frontend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Webhook - Respuesta Tutor": {
-      "main": [[{ "node": "¿Confirma el Tutor?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "¿Confirma el Tutor?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "¿Confirma el Tutor?": {
       "main": [
-        [{ "node": "Confirmar Solicitud", "type": "main", "index": 0 }],
-        [{ "node": "Rechazar Solicitud", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Confirmar Solicitud",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rechazar Solicitud",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Confirmar Solicitud": {
-      "main": [[{ "node": "WhatsApp Confirmación al Estudiante", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "WhatsApp Confirmación al Estudiante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Rechazar Solicitud": {
-      "main": [[{ "node": "WhatsApp Rechazo al Estudiante", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "WhatsApp Rechazo al Estudiante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
-  },
-  "tags": ["tutopool", "whatsapp", "tutores"]
+  }
 }
