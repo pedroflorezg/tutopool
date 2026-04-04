@@ -1,0 +1,327 @@
+{
+  "name": "TutoPool - Uber Pool Conversion",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "id": "cf77ec08-9fb4-4310-befa-8035e838316b",
+      "name": "Cron Cada Hora",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -656,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT s.id AS sesion_id, s.materia_id, s.tipo, s.estado, s.fecha_inicio, s.precio_individual, s.precio_grupal, s.min_estudiantes, m.nombre AS materia_nombre, t.nombre AS tutor_nombre, COUNT(i.id) AS total_inscritos, ARRAY_AGG(json_build_object('estudiante_id', i.estudiante_id, 'email', u.email, 'telefono', u.raw_user_meta_data->>'telefono')) AS estudiantes FROM sesiones s JOIN materias m ON s.materia_id = m.id JOIN tutores t ON s.tutor_id = t.id LEFT JOIN inscripciones i ON s.id = i.sesion_id AND i.estado_pago IN ('pendiente', 'pagado') LEFT JOIN auth.users u ON i.estudiante_id = u.id WHERE s.tipo = 'grupal' AND s.estado = 'esperando_cupos' AND s.fecha_inicio BETWEEN NOW() + INTERVAL '23 hours' AND NOW() + INTERVAL '25 hours' GROUP BY s.id, m.nombre, t.nombre HAVING COUNT(i.id) < s.min_estudiantes;",
+        "options": {}
+      },
+      "id": "14ba266c-cbf7-4639-a8e4-0327d317dd9f",
+      "name": "Buscar Sesiones Bajo Cupo",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -448,
+        112
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "BjOM9Q04vHkpnGCV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "b7a74dcb-bef8-43ae-b4b5-304a3c786ad6",
+              "leftValue": "={{ $json.total_inscritos }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "8fdb6403-f156-4ad6-89d5-5ddd3bba7efe",
+      "name": "¿Tiene Al Menos 1 Inscrito?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:8080/message/sendText/tutopool_whatsapp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "B6D711FCDE4D4FD5936544120E713976"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.estudiantes[0].telefono }}\",\n  \"options\": {\n    \"delay\": 1200,\n    \"presence\": \"composing\"\n  },\n  \"messageMessage\": {\n    \"contentText\": \"🎓 *TutoPool - Nueva Solicitud*\\n\\nTienes una solicitud de tutoría para {{ $json.materia_nombre }}. ¿Deseas confirmarla?\",\n    \"footerText\": \"TutoPool v2.0\",\n    \"buttons\": [\n      {\n        \"buttonId\": \"aceptar_{{ $json.sesion_id }}\",\n        \"buttonText\": {\"displayText\": \"Aceptar\"},\n        \"type\": 1\n      },\n      {\n        \"buttonId\": \"rechazar_{{ $json.sesion_id }}\",\n        \"buttonText\": {\"displayText\": \"Rechazar\"},\n        \"type\": 1\n      }\n    ],\n    \"headerType\": 1\n  }\n}",
+        "options": {}
+      },
+      "id": "b3dc33eb-581f-4c44-a6c2-00a11b70c744",
+      "name": "Enviar WhatsApp (Evolution API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE sesiones SET estado = 'notificacion_enviada', updated_at = NOW() WHERE id = '{{ $json.sesion_id }}';",
+        "options": {}
+      },
+      "id": "027f29df-2129-4ac8-84c7-801823aaed91",
+      "name": "Marcar Sesión Notificada",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "BjOM9Q04vHkpnGCV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tutopool-respuesta",
+        "options": {}
+      },
+      "id": "60bf07b4-fb1b-4922-96cc-5308fbe19024",
+      "name": "Webhook - Respuesta Estudiante",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        400
+      ],
+      "webhookId": "7360c46c-ef84-4a73-b56c-3dc46ffcd597"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "1f50cb05-bf02-4417-a345-84e2b1847e83",
+              "leftValue": "={{ $json.body.respuesta }}",
+              "rightValue": "aceptar",
+              "operator": {
+                "type": "string",
+                "operation": "contains",
+                "name": "filter.operator.contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "da852d22-e09f-4d40-9103-bff6c5aab013",
+      "name": "¿Acepta la Tutoría?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE sesiones SET estado = 'confirmada', updated_at = NOW() WHERE id = '{{ $json.body.sesion_id }}';",
+        "options": {}
+      },
+      "id": "233d210e-3958-44ac-9aab-ae25af8933d4",
+      "name": "Confirmar Sesión",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -160,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "BjOM9Q04vHkpnGCV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE sesiones SET estado = 'cancelada', updated_at = NOW() WHERE id = '{{ $json.body.sesion_id }}'; UPDATE inscripciones SET estado_pago = 'reembolsado', updated_at = NOW() WHERE sesion_id = '{{ $json.body.sesion_id }}';",
+        "options": {}
+      },
+      "id": "483ab1d7-2640-439f-95bc-f6eba31f3c1f",
+      "name": "Cancelar Sesión y Reembolsar",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -160,
+        512
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "BjOM9Q04vHkpnGCV",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cron Cada Hora": {
+      "main": [
+        [
+          {
+            "node": "Buscar Sesiones Bajo Cupo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Sesiones Bajo Cupo": {
+      "main": [
+        [
+          {
+            "node": "¿Tiene Al Menos 1 Inscrito?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Tiene Al Menos 1 Inscrito?": {
+      "main": [
+        [
+          {
+            "node": "Enviar WhatsApp (Evolution API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar WhatsApp (Evolution API)": {
+      "main": [
+        [
+          {
+            "node": "Marcar Sesión Notificada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Respuesta Estudiante": {
+      "main": [
+        [
+          {
+            "node": "¿Acepta la Tutoría?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Acepta la Tutoría?": {
+      "main": [
+        [
+          {
+            "node": "Confirmar Sesión",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancelar Sesión y Reembolsar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "2c53f8ca-9e57-4547-9ca5-4d4716de5f3e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c4d29baa28e526a9d9109b81cf88a4a629ae921b2361d682ed41828e69b74891"
+  },
+  "id": "zu80iJNsOrjTFDNI",
+  "tags": [
+    {
+      "updatedAt": "2026-03-31T13:09:43.934Z",
+      "createdAt": "2026-03-31T13:09:43.934Z",
+      "id": "mp4LXPN0gpGEFa5o",
+      "name": "TutoPool"
+    },
+    {
+      "updatedAt": "2026-03-31T13:09:43.923Z",
+      "createdAt": "2026-03-31T13:09:43.923Z",
+      "id": "ne4o4ACXcPSJhAaf",
+      "name": "Automation"
+    }
+  ]
+}
