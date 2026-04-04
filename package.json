@@ -1,0 +1,21 @@
+{
+  "name": "tutopool",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "up": "docker compose up -d",
+    "down": "docker compose down",
+    "logs": "docker compose logs -f",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:push": "supabase db push",
+    "db:status": "supabase status",
+    "n8n:import": "bash scripts/n8n-import.sh",
+    "n8n:export": "bash scripts/n8n-export.sh",
+    "deploy:db": "bash scripts/deploy.sh --db",
+    "deploy:n8n": "bash scripts/deploy.sh --n8n",
+    "deploy:frontend": "bash scripts/deploy.sh --frontend",
+    "deploy:all": "bash scripts/deploy.sh --all"
+  }
+}

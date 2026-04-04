@@ -8,5 +8,13 @@ frontend/.env.local
 # Build output
 frontend/dist/
 
+# Build output
+frontend/dist/
+
+# Env files con valores reales
+.env
+frontend/.env
+frontend/.env.local
+
 # OS
 .DS_Store
