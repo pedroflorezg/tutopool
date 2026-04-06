@@ -7,8 +7,7 @@ import {
   DEMO_SESIONES
 } from '../lib/supabase'
 
-// Función auxiliar para quitar tildes y normalizar textos
-const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
 
 export function useSubjects(filters = {}) {
   const [materias, setMaterias] = useState([])
@@ -16,29 +15,17 @@ export function useSubjects(filters = {}) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    fetchProgramas()
-  }, [])
+  useEffect(() => { fetchProgramas() }, [])
 
-  useEffect(() => {
-    fetchMaterias()
-  }, [filters.programaId, filters.semestre, filters.search])
+  useEffect(() => { fetchMaterias() }, [filters.programaId, filters.semestre, filters.search])
 
   async function fetchProgramas() {
-    if (isDemoMode) {
-      setProgramas(DEMO_PROGRAMAS)
-      return
-    }
+    if (isDemoMode) { setProgramas(DEMO_PROGRAMAS); return }
     try {
-      const { data, error } = await supabase
-        .from('programas')
-        .select('*')
-        .order('nombre')
+      const { data, error } = await supabase.from('programas').select('*').order('nombre')
       if (error) throw error
       setProgramas(data || [])
-    } catch (err) {
-      setError(err.message)
-    }
+    } catch (err) { setError(err.message) }
   }
 
   async function fetchMaterias() {
@@ -46,65 +33,91 @@ export function useSubjects(filters = {}) {
     setError(null)
     try {
       if (isDemoMode) {
-        // Filtrar solo materias que tienen al menos un tutor activo u oferta docente 
-        // (En demo: aquellas que tienen al menos una sesión registrada)
         const materiasConTutores = new Set(DEMO_SESIONES?.map(s => s.materia_id) || [])
         let filtered = DEMO_MATERIAS.filter(m => materiasConTutores.has(m.id))
-
-        if (filters.programaId) {
-          filtered = filtered.filter(m => m.programa_id === filters.programaId)
-        }
-        if (filters.semestre) {
-          filtered = filtered.filter(m => m.semestre === parseInt(filters.semestre))
-        }
+        if (filters.programaId) filtered = filtered.filter(m => m.programa_id === filters.programaId)
+        if (filters.semestre)   filtered = filtered.filter(m => m.semestre === parseInt(filters.semestre))
         if (filters.search) {
           const q = normalize(filters.search)
-          // Búsqueda inteligente ignorando tildes y minúsculas
-          filtered = filtered.filter(
-            m => normalize(m.nombre).includes(q) || normalize(m.codigo).includes(q)
-          )
+          filtered = filtered.filter(m => normalize(m.nombre).includes(q) || normalize(m.codigo).includes(q))
         }
-
         filtered = filtered.map(m => ({
           ...m,
-          programa_nombre: DEMO_PROGRAMAS.find(p => p.id === m.programa_id)?.nombre || ''
+          programa_nombre: DEMO_PROGRAMAS.find(p => p.id === m.programa_id)?.nombre || '',
+          tutores: [],
+          openPools: 0,
         }))
         setMaterias(filtered)
         setLoading(false)
         return
       }
 
-      // Supabase Query: inner join con tutor_materias para OCULTAR materias sin oferta docente
-      let query = supabase
+      // Fetch materias with tutors (inner join ensures only subjects with tutors)
+      // and include tutor names via tutor_materias → tutores
+      const { data, error } = await supabase
         .from('materias')
-        .select('*, programas(nombre), tutor_materias!inner(tutor_id)')
-        .order('semestre')
+        .select(`
+          id, nombre, codigo, descripcion, creditos,
+          tutor_materias!inner(tutor_id, tutores(id, nombre, activo)),
+          materia_programas(semestre, programa_id, programas(nombre))
+        `)
         .order('nombre')
-
-      if (filters.programaId) {
-        query = query.eq('programa_id', filters.programaId)
-      }
-      if (filters.semestre) {
-        query = query.eq('semestre', parseInt(filters.semestre))
-      }
-      if (filters.search) {
-        // En un entorno real se recomienda usar una función RPC en supabase que soporte unaccent
-        query = query.or(`nombre.ilike.%${filters.search}%,codigo.ilike.%${filters.search}%`)
-      }
-
-      const { data, error } = await query
       if (error) throw error
 
-      // Eliminamos duplicados producidos por el inner join si un material tiene varios tutores
-      const uniqueData = Array.from(new Set(data.map(m => m.id)))
-        .map(id => data.find(m => m.id === id));
+      // Fetch open pools per materia in one query
+      const { data: sesData } = await supabase
+        .from('sesiones')
+        .select('id, materia_id, estado')
+        .in('estado', ['esperando_cupos', 'confirmada'])
 
-      setMaterias(
-        (uniqueData || []).map(m => ({
+      // Map materia_id → open pool count
+      const openPoolsMap = {}
+      ;(sesData || []).forEach(s => {
+        openPoolsMap[s.materia_id] = (openPoolsMap[s.materia_id] || 0) + 1
+      })
+
+      // Deduplicate (inner join on tutor_materias can produce duplicates)
+      const seen = new Set()
+      let unique = (data || []).filter(m => { if (seen.has(m.id)) return false; seen.add(m.id); return true })
+
+      // Client-side filtering for programa
+      if (filters.programaId) {
+        unique = unique.filter(m =>
+          m.materia_programas?.some(mp => mp.programa_id === filters.programaId)
+        )
+      }
+      // Client-side filtering for semestre
+      if (filters.semestre) {
+        const sem = parseInt(filters.semestre)
+        unique = unique.filter(m =>
+          m.materia_programas?.some(mp => mp.semestre === sem)
+        )
+      }
+      // Client-side accent-insensitive search
+      if (filters.search) {
+        const q = normalize(filters.search)
+        unique = unique.filter(m => normalize(m.nombre).includes(q) || normalize(m.codigo || '').includes(q))
+      }
+
+      setMaterias(unique.map(m => {
+        const mp = filters.programaId
+          ? m.materia_programas?.find(mp => mp.programa_id === filters.programaId)
+          : m.materia_programas?.[0]
+
+        // Extract unique active tutors for this materia
+        const seenTutors = new Set()
+        const tutores = (m.tutor_materias || [])
+          .map(tm => tm.tutores)
+          .filter(t => t && t.activo && !seenTutors.has(t.id) && seenTutors.add(t.id))
+
+        return {
           ...m,
-          programa_nombre: m.programas?.nombre || ''
-        }))
-      )
+          semestre: mp?.semestre ?? null,
+          programa_nombre: mp?.programas?.nombre || '',
+          tutores,
+          openPools: openPoolsMap[m.id] || 0,
+        }
+      }))
     } catch (err) {
       setError(err.message)
     } finally {

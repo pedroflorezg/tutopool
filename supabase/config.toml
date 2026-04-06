@@ -33,7 +33,7 @@ file_size_limit = "50MiB"
 [auth]
 enabled = true
 site_url = "http://localhost:5173"
-additional_redirect_urls = ["http://localhost:5173"]
+additional_redirect_urls = ["http://localhost:5173", "http://localhost:5173/auth/callback", "http://127.0.0.1:5173/auth/callback"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
@@ -46,14 +46,15 @@ double_confirm_changes = true
 enable_confirmations = false   # desactivado en local para no necesitar email
 
 [auth.external.google]
-enabled = false
-client_id = ""
-secret = ""
+enabled = true
+client_id = "558547910774-7mr3jq65en4odgjipr6gepuk43tv18nk.apps.googleusercontent.com"
+secret = "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"
 
 [auth.external.azure]
-enabled = false
-client_id = ""
-secret = ""
+enabled = true
+client_id = "2013a6b3-e5ed-4544-b117-a93957a5661d"
+secret = "2Y.8Q~j1klz1W5bt3Ta4f0Oj-P1BEM3tCCjaadqa"
+redirect_uri = "http://localhost:54321/auth/v1/callback"
 
 [analytics]
 enabled = false

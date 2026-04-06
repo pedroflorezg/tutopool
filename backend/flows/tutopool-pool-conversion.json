@@ -78,24 +78,17 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=http://localhost:8080/message/sendText/tutopool_whatsapp",
+        "url": "http://host.docker.internal:3001/send-message",
         "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "B6D711FCDE4D4FD5936544120E713976"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"number\": \"{{ $json.estudiantes[0].telefono }}\",\n  \"options\": {\n    \"delay\": 1200,\n    \"presence\": \"composing\"\n  },\n  \"messageMessage\": {\n    \"contentText\": \"🎓 *TutoPool - Nueva Solicitud*\\n\\nTienes una solicitud de tutoría para {{ $json.materia_nombre }}. ¿Deseas confirmarla?\",\n    \"footerText\": \"TutoPool v2.0\",\n    \"buttons\": [\n      {\n        \"buttonId\": \"aceptar_{{ $json.sesion_id }}\",\n        \"buttonText\": {\"displayText\": \"Aceptar\"},\n        \"type\": 1\n      },\n      {\n        \"buttonId\": \"rechazar_{{ $json.sesion_id }}\",\n        \"buttonText\": {\"displayText\": \"Rechazar\"},\n        \"type\": 1\n      }\n    ],\n    \"headerType\": 1\n  }\n}",
-        "options": {}
+        "options": {},
+        "contentType": "json",
+        "body": {
+          "to": "={{ $json.telefono }}",
+          "message": "={{ $json.mensaje }}"
+        }
       },
       "id": "b3dc33eb-581f-4c44-a6c2-00a11b70c744",
       "name": "Enviar WhatsApp (Evolution API)",
@@ -309,5 +302,5 @@
     "templateCredsSetupCompleted": true,
     "instanceId": "c4d29baa28e526a9d9109b81cf88a4a629ae921b2361d682ed41828e69b74891"
   },
-  "id": "zu80iJNsOrjTFDNI"
+  "id": "f2a73aea-5c0a-4893-b525-5191196fbf4b"
 }

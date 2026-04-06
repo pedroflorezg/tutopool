@@ -1,0 +1,6 @@
+2026/04/05-10:09:05.722 b0401 Reusing MANIFEST /Users/pedroflorez/Desktop/Dev/code/backend/whatsapp-bridge/wa-session/session/Default/Local Storage/leveldb/MANIFEST-000001
+2026/04/05-10:09:05.724 b0401 Recovering log #3
+2026/04/05-10:09:05.725 b0401 Reusing old log /Users/pedroflorez/Desktop/Dev/code/backend/whatsapp-bridge/wa-session/session/Default/Local Storage/leveldb/000003.log 
+2026/04/05-12:43:16.762 b0401 Level-0 table #5: started
+2026/04/05-12:43:16.773 b0401 Level-0 table #5: 20390 bytes OK
+2026/04/05-12:43:16.778 b0401 Delete type=0 #3

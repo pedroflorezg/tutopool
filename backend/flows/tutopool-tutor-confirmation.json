@@ -21,23 +21,23 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://localhost:8080/message/sendButtons/TutoPool",
+        "url": "http://host.docker.internal:3001/send-message",
         "sendHeaders": true,
-        "headerParameters": {
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "keypair",
+        "bodyParameters": {
           "parameters": [
             {
-              "name": "Content-Type",
-              "value": "application/json"
+              "name": "to",
+              "value": "={{ $('Webhook - Nueva Solicitud').item.json.body.data.tutor.telefono }}"
             },
             {
-              "name": "apikey",
-              "value": "={{ $env.EVOLUTION_API_KEY }}"
+              "name": "message",
+              "value": "={{ '🎓 *Nueva solicitud de tutoría*\\n\\nEstudiante: ' + $('Webhook - Nueva Solicitud').item.json.body.data.estudiante.nombre + '\\nFecha: ' + $('Webhook - Nueva Solicitud').item.json.body.data.solicitud.fecha + '\\nHora: ' + $('Webhook - Nueva Solicitud').item.json.body.data.solicitud.hora + '\\nFormato: ' + $('Webhook - Nueva Solicitud').item.json.body.data.solicitud.formato + '\\nTipo: ' + $('Webhook - Nueva Solicitud').item.json.body.data.solicitud.tipo + '\\n\\nResponde *CONFIRMAR* o *RECHAZAR*' }}"
             }
           ]
         },
-        "sendBody": true,
-        "contentType": "json",
-        "body": "={\n  \"number\": \"{{ $json.body.data.tutor.telefono }}\",\n  \"delay\": 1200,\n  \"presence\": \"composing\",\n  \"buttonMessage\": {\n    \"title\": \"Nueva solicitud de tutoría\",\n    \"description\": \"Hola {{ $json.body.data.tutor.nombre }}, el estudiante {{ $json.body.data.estudiante.nombre }} quiere agendar una sesión de {{ $json.body.data.solicitud.duracion_minutos }} min el {{ $json.body.data.solicitud.fecha }} a las {{ $json.body.data.solicitud.hora }} ({{ $json.body.data.solicitud.formato }}).\\n\\n¿Puedes confirmar esta franja horaria?\",\n    \"footer\": \"TutoPool\",\n    \"buttons\": [\n      { \"buttonId\": \"confirmar\", \"buttonText\": { \"displayText\": \"Confirmar\" }, \"type\": 1 },\n      { \"buttonId\": \"rechazar\",  \"buttonText\": { \"displayText\": \"Rechazar\" },  \"type\": 1 }\n    ]\n  }\n}",
         "options": {}
       },
       "id": "a1b2c3d4-0002-0000-0000-000000000002",
@@ -175,23 +175,17 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://localhost:8080/message/sendText/TutoPool",
+        "url": "http://host.docker.internal:3001/send-message",
         "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "apikey",
-              "value": "={{ $env.EVOLUTION_API_KEY }}"
-            }
-          ]
-        },
         "sendBody": true,
         "contentType": "json",
-        "body": "={\n  \"number\": \"{{ $json.body.estudiante_telefono }}\",\n  \"delay\": 800,\n  \"presence\": \"composing\",\n  \"textMessage\": {\n    \"text\": \"✅ *Tu tutoría fue confirmada*\\n\\nEl tutor aceptó la franja horaria solicitada. Te llegará la información de conexión/lugar pronto.\\n\\n_TutoPool_\"\n  }\n}",
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "to", "value": "={{ $json.telefono }}" },
+            { "name": "message", "value": "={{ $json.mensaje }}" }
+          ]
+        },
         "options": {}
       },
       "id": "a1b2c3d4-0009-0000-0000-000000000009",
@@ -206,23 +200,17 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://localhost:8080/message/sendText/TutoPool",
+        "url": "http://host.docker.internal:3001/send-message",
         "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "apikey",
-              "value": "={{ $env.EVOLUTION_API_KEY }}"
-            }
-          ]
-        },
         "sendBody": true,
         "contentType": "json",
-        "body": "={\n  \"number\": \"{{ $json.body.estudiante_telefono }}\",\n  \"delay\": 800,\n  \"presence\": \"composing\",\n  \"textMessage\": {\n    \"text\": \"❌ *El tutor no pudo confirmar esa franja*\\n\\nTe recomendamos elegir otro horario o tutor disponible en TutoPool.\\n\\n_TutoPool_\"\n  }\n}",
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "to", "value": "={{ $json.telefono }}" },
+            { "name": "message", "value": "={{ $json.mensaje }}" }
+          ]
+        },
         "options": {}
       },
       "id": "a1b2c3d4-0010-0000-0000-000000000010",
@@ -324,5 +312,6 @@
   "active": false,
   "settings": {
     "executionOrder": "v1"
-  }
+  },
+  "id": "8667ff10-1a80-47df-9539-9aaa0933d0d7"
 }

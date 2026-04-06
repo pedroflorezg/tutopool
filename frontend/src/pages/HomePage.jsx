@@ -10,140 +10,131 @@ export default function HomePage() {
   const filters = useMemo(() => ({
     search,
     programaId: programaId || undefined,
-    semestre: semestre || undefined,
+    semestre:   semestre   || undefined,
   }), [search, programaId, semestre])
 
   const { materias, programas, loading } = useSubjects(filters)
+  const hasFilters = search || programaId || semestre
 
   return (
-    <div style={{ paddingBottom: '60px' }}>
-      {/* Hero Section */}
+    <div style={{ paddingBottom: '80px' }}>
+
+      {/* ── Hero ── */}
       <section style={{
-        padding: '48px 0 32px',
-        textAlign: 'center',
-        position: 'relative',
-        overflow: 'hidden',
+        background: 'white',
+        borderBottom: '1px solid var(--color-gray-200)',
+        padding: '96px 0 64px',
+        minHeight: '460px',
+        display: 'flex',
+        alignItems: 'center',
       }}>
-        {/* Background glow */}
-        <div style={{
-          position: 'absolute',
-          top: '-100px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '600px',
-          height: '400px',
-          background: 'radial-gradient(ellipse, rgba(16,185,129,0.08) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
+        <div className="container">
+          <div style={{ maxWidth: '600px' }}>
 
-        <div className="container" style={{ position: 'relative' }}>
-          <h1 className="animate-fade-in-up" style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
-            fontWeight: 800,
-            color: 'white',
-            marginBottom: '12px',
-            letterSpacing: '-0.03em',
-            lineHeight: 1.15,
-          }}>
-            Encuentra tu <span style={{
-              background: 'linear-gradient(135deg, #10b981, #0ea5e9)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}>tutoría perfecta</span>
-          </h1>
-          <p className="animate-fade-in-up stagger-1" style={{
-            fontSize: 'clamp(0.95rem, 2vw, 1.1rem)',
-            color: 'var(--color-navy-400)',
-            maxWidth: '520px',
-            margin: '0 auto 32px',
-            lineHeight: 1.6,
-          }}>
-            Únete a pools grupales y paga menos, o solicita una tutoría personalizada.
-          </p>
-
-          {/* Search Bar */}
-          <div className="animate-fade-in-up stagger-2" style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <div style={{
-              position: 'relative',
-              marginBottom: '16px',
+            <p style={{
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'var(--color-gray-400)',
+              marginBottom: '18px',
             }}>
-              <span style={{
-                position: 'absolute',
-                left: '16px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                fontSize: '1.1rem',
-                opacity: 0.4,
-              }}>🔍</span>
-              <input
-                id="search-bar"
-                type="text"
-                placeholder="Buscar materia por nombre o código..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="input-field"
-                style={{
-                  paddingLeft: '44px',
-                  height: '52px',
-                  fontSize: '1rem',
-                  borderRadius: '14px',
-                }}
-              />
+              Universidad EIA · Medellín
+            </p>
+
+            <h1 className="animate-fade-in-up" style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: 'clamp(2.2rem, 5vw, 3.2rem)',
+              fontWeight: 800,
+              color: 'var(--color-gray-900)',
+              marginBottom: '16px',
+              letterSpacing: '-0.04em',
+              lineHeight: 1.1,
+            }}>
+              Encuentra tu tutoría
+            </h1>
+
+            <p className="animate-fade-in-up stagger-1" style={{
+              fontSize: '1.05rem',
+              color: 'var(--color-gray-500)',
+              marginBottom: '36px',
+              lineHeight: 1.7,
+              maxWidth: '480px',
+            }}>
+              Únete a grupos de estudio con <strong>40% de descuento</strong> o solicita una sesión personalizada.
+            </p>
+
+            <div className="animate-fade-in-up stagger-2" style={{
+              display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '40px',
+            }}>
+              {[
+                { text: 'Pools grupales — 40% de descuento' },
+                { text: 'Presencial o virtual' },
+                { text: 'Confirmación por WhatsApp' },
+              ].map(({ text }) => (
+                <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.83rem', color: 'var(--color-gray-500)' }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--color-gray-400)', flexShrink: 0 }} />
+                  {text}
+                </div>
+              ))}
             </div>
 
-            {/* Filters */}
-            <div style={{
-              display: 'flex',
-              gap: '10px',
-              flexWrap: 'wrap',
-            }}>
-              <select
-                id="filter-programa"
-                value={programaId}
-                onChange={(e) => setProgramaId(e.target.value)}
-                className="input-field"
-                style={{ flex: '1', minWidth: '180px', cursor: 'pointer' }}
-              >
-                <option value="">Todos los programas</option>
-                {programas.map(p => (
-                  <option key={p.id} value={p.id}>{p.nombre}</option>
-                ))}
-              </select>
-              <select
-                id="filter-semestre"
-                value={semestre}
-                onChange={(e) => setSemestre(e.target.value)}
-                className="input-field"
-                style={{ flex: '0 0 140px', cursor: 'pointer' }}
-              >
-                <option value="">Semestre</option>
-                {[1,2,3,4,5,6,7,8,9,10].map(s => (
-                  <option key={s} value={s}>Semestre {s}</option>
-                ))}
-              </select>
+            {/* Search */}
+            <div className="animate-fade-in-up stagger-2">
+              <div style={{ position: 'relative', marginBottom: '10px' }}>
+                <svg style={{
+                  position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)',
+                  width: '15px', height: '15px', color: 'var(--color-gray-400)', flexShrink: 0,
+                }} viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                </svg>
+                <input
+                  id="search-bar"
+                  type="text"
+                  placeholder="Buscar por nombre o código (ej. MAT101, Cálculo…)"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="input-field"
+                  style={{ paddingLeft: '40px', height: '46px', fontSize: '0.9rem' }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <select
+                  id="filter-programa"
+                  value={programaId}
+                  onChange={(e) => setProgramaId(e.target.value)}
+                  className="input-field"
+                  style={{ flex: '1', minWidth: '180px', cursor: 'pointer', height: '40px' }}
+                >
+                  <option value="">Todos los programas</option>
+                  {programas.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                </select>
+                <select
+                  id="filter-semestre"
+                  value={semestre}
+                  onChange={(e) => setSemestre(e.target.value)}
+                  className="input-field"
+                  style={{ flex: '0 0 155px', cursor: 'pointer', height: '40px' }}
+                >
+                  <option value="">Semestre</option>
+                  {[1,2,3,4,5,6,7,8,9,10].map(s => <option key={s} value={s}>Semestre {s}</option>)}
+                </select>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Results */}
-      <section className="container">
+      {/* ── Results ── */}
+      <section className="container" style={{ paddingTop: '36px' }}>
         <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          marginBottom: '22px',
         }}>
-          <h2 style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: '1.2rem',
-            fontWeight: 600,
-            color: 'var(--color-navy-200)',
-          }}>
+          <p style={{ fontSize: '0.83rem', color: 'var(--color-gray-400)', fontWeight: 500 }}>
             {loading ? 'Cargando…' : `${materias.length} materia${materias.length !== 1 ? 's' : ''} encontrada${materias.length !== 1 ? 's' : ''}`}
-          </h2>
-          {(search || programaId || semestre) && (
+          </p>
+          {hasFilters && (
             <button
               onClick={() => { setSearch(''); setProgramaId(''); setSemestre('') }}
               className="btn btn-secondary btn-sm"
@@ -154,34 +145,24 @@ export default function HomePage() {
         </div>
 
         {loading ? (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '16px',
-          }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
             {[1,2,3,4,5,6].map(i => (
-              <div key={i} className="skeleton" style={{ height: '180px', borderRadius: 'var(--radius-card)' }} />
+              <div key={i} className="skeleton" style={{ height: '160px' }} />
             ))}
           </div>
         ) : materias.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '60px 20px',
-            color: 'var(--color-navy-400)',
-          }}>
-            <div style={{ fontSize: '3rem', marginBottom: '12px' }}>📚</div>
-            <p style={{ fontSize: '1.1rem' }}>No se encontraron materias con esos filtros.</p>
-            <p style={{ fontSize: '0.9rem', marginTop: '4px' }}>Prueba con otros criterios de búsqueda.</p>
+          <div style={{ textAlign: 'center', padding: '72px 20px', color: 'var(--color-gray-400)' }}>
+            <svg style={{ width: '36px', height: '36px', margin: '0 auto 14px', display: 'block', opacity: 0.4 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+            </svg>
+            <p style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-gray-600)', marginBottom: '4px' }}>
+              No se encontraron materias
+            </p>
+            <p style={{ fontSize: '0.83rem' }}>Prueba con otros criterios de búsqueda.</p>
           </div>
         ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '16px',
-          }}>
-            {materias.map((m, i) => (
-              <SubjectCard key={m.id} materia={m} index={i} />
-            ))}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+            {materias.map((m, i) => <SubjectCard key={m.id} materia={m} index={i} />)}
           </div>
         )}
       </section>
@@ -190,91 +171,54 @@ export default function HomePage() {
 }
 
 function SubjectCard({ materia, index }) {
-  const semesterColors = {
-    1: '#10b981', 2: '#0ea5e9', 3: '#8b5cf6',
-    4: '#f59e0b', 5: '#ef4444', 6: '#06b6d4',
-    7: '#ec4899', 8: '#14b8a6', 9: '#f97316', 10: '#6366f1',
-  }
-  const color = semesterColors[materia.semestre] || '#627d98'
-
   return (
     <Link
       to={`/materia/${materia.id}`}
       id={`subject-card-${materia.id}`}
-      className={`glass-card animate-fade-in-up stagger-${Math.min(index + 1, 6)}`}
-      style={{
-        display: 'block',
-        padding: '24px',
-        textDecoration: 'none',
-        color: 'inherit',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
+      className={`card animate-fade-in-up stagger-${Math.min(index + 1, 6)}`}
+      style={{ display: 'block', padding: '20px 22px', textDecoration: 'none', color: 'inherit' }}
     >
-      {/* Accent line */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '3px',
-        background: `linear-gradient(90deg, ${color}, transparent)`,
-      }} />
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-        <span className="badge badge-sky" style={{
-          background: `${color}18`,
-          color: color,
-          borderColor: `${color}30`,
+      {/* Header row: nombre + badge pool abierto */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '12px' }}>
+        <h3 style={{
+          fontFamily: 'var(--font-heading)',
+          fontSize: '0.975rem', fontWeight: 700,
+          color: 'var(--color-gray-900)',
+          lineHeight: 1.3, margin: 0,
         }}>
-          {materia.codigo}
-        </span>
-        <span className="badge badge-amber" style={{ fontSize: '0.7rem' }}>
-          Sem. {materia.semestre}
-        </span>
+          {materia.nombre}
+        </h3>
+        {materia.openPools > 0 && (
+          <span style={{
+            fontSize: '0.68rem', fontWeight: 700,
+            background: '#dcfce7', color: '#15803d',
+            padding: '3px 8px', borderRadius: '100px',
+            whiteSpace: 'nowrap', letterSpacing: '0.02em', flexShrink: 0,
+          }}>
+            ✓ Pool abierto
+          </span>
+        )}
       </div>
 
-      <h3 style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize: '1.05rem',
-        fontWeight: 600,
-        color: 'white',
-        marginBottom: '8px',
-        lineHeight: 1.3,
-      }}>
-        {materia.nombre}
-      </h3>
-
-      <p style={{
-        fontSize: '0.82rem',
-        color: 'var(--color-navy-400)',
-        lineHeight: 1.5,
-        marginBottom: '12px',
-        display: '-webkit-box',
-        WebkitLineClamp: 2,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden',
-      }}>
-        {materia.descripcion}
-      </p>
-
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        <span style={{
-          fontSize: '0.78rem',
-          color: 'var(--color-navy-500)',
-        }}>
-          {materia.programa_nombre}
-        </span>
-        <span style={{
-          fontSize: '0.78rem',
-          color: 'var(--color-navy-400)',
-        }}>
-          {materia.creditos} créditos
-        </span>
+      {/* Tutors */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+        {materia.tutores?.length > 0 ? (
+          materia.tutores.map(t => (
+            <span key={t.id} style={{
+              fontSize: '0.72rem', fontWeight: 600,
+              color: 'var(--color-gray-600)',
+              background: 'var(--color-gray-100)',
+              padding: '3px 8px', borderRadius: '100px',
+              display: 'flex', alignItems: 'center', gap: '4px',
+            }}>
+              <span style={{ fontSize: '0.65rem' }}>👤</span> {t.nombre}
+            </span>
+          ))
+        ) : (
+          <span style={{ fontSize: '0.72rem', color: 'var(--color-gray-300)', fontStyle: 'italic' }}>
+            Sin tutores asignados
+          </span>
+        )}
       </div>
     </Link>
   )

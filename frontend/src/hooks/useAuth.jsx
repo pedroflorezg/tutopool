@@ -57,12 +57,12 @@ export function AuthProvider({ children }) {
       })
       return { error: null }
     }
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: metadata }
     })
-    return { error }
+    return { data, error }
   }
 
   // NUEVO: Integración de SSO (Google y Microsoft Azure)
@@ -78,7 +78,7 @@ export function AuthProvider({ children }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: provider,
       options: {
-        redirectTo: `${window.location.origin}/`
+        redirectTo: `${window.location.origin}/auth/callback`
       }
     })
     return { error }

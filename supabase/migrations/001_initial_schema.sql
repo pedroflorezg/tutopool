@@ -12,14 +12,14 @@ CREATE TYPE estado_pago      AS ENUM ('pendiente', 'pagado', 'reembolsado');
 -- ─── Tablas (orden que respeta foreign keys) ─────────────────────────────────
 
 CREATE TABLE public.programas (
-  id          uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   nombre      text NOT NULL UNIQUE,
   facultad    text,
   created_at  timestamptz DEFAULT now()
 );
 
 CREATE TABLE public.tutores (
-  id                      uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id                      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id                 uuid REFERENCES auth.users(id),
   nombre                  text NOT NULL,
   email                   text NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE public.tutores (
 );
 
 CREATE TABLE public.materias (
-  id          uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   nombre      text NOT NULL,
   codigo      text UNIQUE,
   semestre    integer NOT NULL CHECK (semestre BETWEEN 1 AND 12),
@@ -55,7 +55,7 @@ CREATE TABLE public.tutor_materias (
 );
 
 CREATE TABLE public.sesiones (
-  id               uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   materia_id       uuid NOT NULL REFERENCES public.materias(id),
   tutor_id         uuid REFERENCES public.tutores(id),
   tipo             tipo_sesion    NOT NULL DEFAULT 'grupal',
@@ -75,7 +75,7 @@ CREATE TABLE public.sesiones (
 );
 
 CREATE TABLE public.inscripciones (
-  id             uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   sesion_id      uuid NOT NULL REFERENCES public.sesiones(id),
   estudiante_id  uuid NOT NULL REFERENCES auth.users(id),
   estado_pago    estado_pago NOT NULL DEFAULT 'pendiente',
@@ -86,7 +86,7 @@ CREATE TABLE public.inscripciones (
 );
 
 CREATE TABLE public.solicitudes_tutoria (
-  id                  uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   estudiante_id       uuid NOT NULL REFERENCES auth.users(id),
   materia_id          uuid NOT NULL REFERENCES public.materias(id),
   tipo                tipo_sesion    NOT NULL DEFAULT 'individual',
