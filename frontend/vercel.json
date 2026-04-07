@@ -13,6 +13,10 @@
             "destination": "http://89.167.116.47:8000/storage/v1/:path*"
         },
         {
+            "source": "/evo/:path*",
+            "destination": "http://89.167.116.47:8080/:path*"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }

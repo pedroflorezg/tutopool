@@ -1157,7 +1157,9 @@ function ProgramasTab() {
 }
 
 // ─── Notificaciones Tab ───────────────────────────────────────────────────────
-const WA_BRIDGE = 'http://localhost:3001'
+const EVO_BASE     = '/evo'
+const EVO_INSTANCE = 'tutopool'
+const EVO_API_KEY  = 'tutopool-evo-2026'
 
 function buildMsgRecordatorio(s, fmtDate, fmtTime) {
   const ubicStr = s.formato === 'virtual'
@@ -1204,11 +1206,13 @@ function NotificacionesTab() {
 
   useEffect(() => { fetchSesiones() }, [fetchSesiones])
 
-  // Check WhatsApp bridge status
+  // Check WhatsApp (Evolution API) status
   useEffect(() => {
-    fetch(`${WA_BRIDGE}/health`)
+    fetch(`${EVO_BASE}/instance/connectionState/${EVO_INSTANCE}`, {
+      headers: { apikey: EVO_API_KEY },
+    })
       .then(r => r.json())
-      .then(d => setWaStatus(d.status))
+      .then(d => setWaStatus(d?.instance?.state === 'open' ? 'ready' : 'connecting'))
       .catch(() => setWaStatus('offline'))
   }, [])
 
@@ -1240,15 +1244,15 @@ function NotificacionesTab() {
     if (!phone.trim()) { setSendResult('❌ Ingresa un número de WhatsApp.'); return }
     setSending(true); setSendResult('')
     try {
-      const res = await fetch(`${WA_BRIDGE}/send-message`, {
+      const res = await fetch(`${EVO_BASE}/message/sendText/${EVO_INSTANCE}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: phone.trim(), message: msgText }),
+        headers: { 'Content-Type': 'application/json', apikey: EVO_API_KEY },
+        body: JSON.stringify({ number: phone.trim(), text: msgText }),
       })
       const data = await res.json()
-      setSendResult(res.ok ? '✅ Mensaje enviado con éxito.' : `❌ Error: ${data.error}`)
+      setSendResult(res.ok ? '✅ Mensaje enviado con éxito.' : `❌ Error: ${data.message || JSON.stringify(data)}`)
     } catch {
-      setSendResult('❌ No se pudo conectar al bridge de WhatsApp. ¿Está corriendo en localhost:3001?')
+      setSendResult('❌ No se pudo conectar al servidor de WhatsApp.')
     }
     setSending(false)
   }
