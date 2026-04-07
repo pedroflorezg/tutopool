@@ -1162,11 +1162,13 @@ function buildMsgRecordatorio(s, fmtDate, fmtTime) {
   const ubicStr = s.formato === 'virtual'
     ? `💻 Virtual${s.enlace_virtual ? ' — ' + s.enlace_virtual : ''}`
     : `📍 Presencial — ${s.ubicacion || 'por confirmar'}`
-  return `🎓 *Recordatorio TutoPool*\n\nTienes una sesión de *${s.materias?.nombre || 'tu materia'}* en menos de 24 horas.\n\n📅 ${fmtDate(s.fecha_inicio)} · ${fmtTime(s.fecha_inicio)} – ${fmtTime(s.fecha_fin)}\n${ubicStr}\n👥 ${s.inscritos_actuales || 0}/${s.max_estudiantes || '—'} inscritos\n\n¿Alguna duda? Escríbenos. ¡Nos vemos pronto! 🚀\n\n¿Confirmas que darás esta sesión? Responde *SÍ* o *NO* 🙏`
+  const nombre = s.tutores?.nombre?.split(' ')[0] || 'tutor'
+  return `🎓 *Recordatorio TutoPool*\n\nHola *${nombre}*! Tienes una sesión de *${s.materias?.nombre || 'tu materia'}* en menos de 24 horas.\n\n📅 ${fmtDate(s.fecha_inicio)} · ${fmtTime(s.fecha_inicio)} – ${fmtTime(s.fecha_fin)}\n${ubicStr}\n👥 ${s.inscritos_actuales || 0}/${s.max_estudiantes || '—'} inscritos\n\n¿Confirmas que darás esta sesión? Responde *SÍ* o *NO* 🙏`
 }
 
 function buildMsgSolitario(s, fmtDate) {
-  return `⚠️ *Aviso TutoPool*\n\nLa sesión grupal de *${s.materias?.nombre || 'tu materia'}* del ${fmtDate(s.fecha_inicio)} aún no alcanza el mínimo de ${s.min_estudiantes || 2} estudiantes.\n\nActualmente hay ${s.inscritos_actuales || 0} inscrito(s).\n\nEn breve te confirmamos si se realiza, se convierte a individual o se cancela. Cualquier novedad te avisamos. 🙏\n\n¿Podrías darnos la sesión aunque sea de forma individual? Responde *SÍ* o *NO* 🙏`
+  const nombre = s.tutores?.nombre?.split(' ')[0] || 'tutor'
+  return `⚠️ *Aviso TutoPool*\n\nHola *${nombre}*! La sesión grupal de *${s.materias?.nombre || 'tu materia'}* del ${fmtDate(s.fecha_inicio)} aún no alcanza el mínimo de ${s.min_estudiantes || 2} estudiantes.\n\nActualmente hay ${s.inscritos_actuales || 0} inscrito(s).\n\n¿Podrías darla de forma individual? Responde *SÍ* para confirmar o *NO* para cancelar. 🙏`
 }
 
 function buildEmailSubj(tipo, materia) {
