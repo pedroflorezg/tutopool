@@ -37,10 +37,25 @@ export default function AdminPage() {
   const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [tab, setTab] = useState('tutores')
+  const [debugInfo, setDebugInfo] = useState(null)
 
   useEffect(() => {
     if (!authLoading && (!user || user.email !== ADMIN_EMAIL)) navigate('/')
   }, [user, authLoading, navigate])
+
+  useEffect(() => {
+    if (!user) return
+    // Quick debug probe
+    supabase.from('tutores').select('count', { count: 'exact', head: true }).then(({ count, error }) => {
+      setDebugInfo({
+        url: import.meta.env.VITE_SUPABASE_URL,
+        userEmail: user.email,
+        tutoresCount: count,
+        error: error ? `${error.code}: ${error.message}` : null,
+      })
+    })
+  }, [user])
+
   if (authLoading || !user || user.email !== ADMIN_EMAIL) {
     return <div style={{ padding: '60px', textAlign: 'center', color: 'var(--color-gray-400)' }}>Verificando acceso…</div>
   }
@@ -77,6 +92,11 @@ export default function AdminPage() {
       </div>
 
       <div className="container" style={{ paddingTop: '28px', paddingBottom: '64px' }}>
+        {debugInfo && (
+          <div style={{ marginBottom: '16px', padding: '12px 16px', background: debugInfo.error ? '#fef2f2' : '#f0fdf4', border: `1px solid ${debugInfo.error ? '#fca5a5' : '#86efac'}`, borderRadius: '8px', fontSize: '0.78rem', fontFamily: 'monospace' }}>
+            <strong>Debug:</strong> URL={debugInfo.url} | user={debugInfo.userEmail} | tutores={debugInfo.tutoresCount} | error={debugInfo.error || 'none'}
+          </div>
+        )}
         <StatsRow />
         {tab === 'tutores'        && <TutoresTab />}
         {tab === 'clases'         && <ClasesTab />}
