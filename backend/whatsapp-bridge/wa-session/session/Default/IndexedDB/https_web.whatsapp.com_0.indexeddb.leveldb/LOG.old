@@ -1,0 +1,7 @@
+2026/04/07-09:33:28.852 41d13 Reusing MANIFEST /Users/pedroflorez/Desktop/Dev/code/backend/whatsapp-bridge/wa-session/session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/04/07-09:33:28.863 41d13 Recovering log #3
+2026/04/07-09:33:28.869 41d13 Reusing old log /Users/pedroflorez/Desktop/Dev/code/backend/whatsapp-bridge/wa-session/session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/000003.log 
+2026/04/07-09:37:16.167 41d15 Level-0 table #5: started
+2026/04/07-09:37:16.186 41d15 Level-0 table #5: 136150 bytes OK
+2026/04/07-09:37:16.189 41d15 Delete type=0 #3
+2026/04/07-09:37:16.190 41d15 Manual compaction at level-0 from (begin) .. (end); will stop at (end)

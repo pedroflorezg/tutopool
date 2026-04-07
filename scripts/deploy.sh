@@ -1,65 +1,80 @@
 #!/bin/bash
-# Deploy de TutoPool a servicios cloud
-# Prerequisitos: supabase CLI, acceso a n8n cloud, build del frontend listo
+# TutoPool deployment script
 #
-# Uso: bash scripts/deploy.sh [--db] [--n8n] [--frontend] [--all]
+# Usage:
+#   bash scripts/deploy.sh --frontend        # build + push to Vercel
+#   bash scripts/deploy.sh --server          # pull latest + restart on Hetzner
+#   bash scripts/deploy.sh --all             # both
 
 set -e
 
-DEPLOY_DB=false
-DEPLOY_N8N=false
 DEPLOY_FRONTEND=false
+DEPLOY_SERVER=false
 
 for arg in "$@"; do
   case $arg in
-    --db)         DEPLOY_DB=true ;;
-    --n8n)        DEPLOY_N8N=true ;;
-    --frontend)   DEPLOY_FRONTEND=true ;;
-    --all)        DEPLOY_DB=true; DEPLOY_N8N=true; DEPLOY_FRONTEND=true ;;
-    *) echo "Opción desconocida: $arg"; exit 1 ;;
+    --frontend) DEPLOY_FRONTEND=true ;;
+    --server)   DEPLOY_SERVER=true ;;
+    --all)      DEPLOY_FRONTEND=true; DEPLOY_SERVER=true ;;
+    *) echo "Unknown option: $arg"; exit 1 ;;
   esac
 done
 
-if [ "$DEPLOY_DB" = true ]; then
-  echo "🗄️  Desplegando migraciones a Supabase cloud..."
-  # Requiere: supabase link --project-ref <ref>
-  supabase db push
-  echo "✅  Base de datos actualizada."
-fi
+# ── Frontend → Vercel ─────────────────────────────────────────────────────────
+if [ "$DEPLOY_FRONTEND" = true ]; then
+  echo "Building frontend..."
 
-if [ "$DEPLOY_N8N" = true ]; then
-  echo "⚙️  Subiendo flujos a n8n cloud..."
-  # Requiere: N8N_CLOUD_URL y N8N_CLOUD_API_KEY en .env
-  source .env 2>/dev/null || true
-
-  if [ -z "$N8N_CLOUD_URL" ] || [ -z "$N8N_CLOUD_API_KEY" ]; then
-    echo "❌  Falta N8N_CLOUD_URL o N8N_CLOUD_API_KEY en .env"
-    exit 1
+  # Verify Vercel env vars are set
+  if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
+    echo ""
+    echo "Set these env vars before deploying (or configure them in the Vercel dashboard):"
+    echo "  VITE_SUPABASE_URL        — http://<SERVER_IP>:8000"
+    echo "  VITE_SUPABASE_ANON_KEY   — ANON_KEY from .env.production"
+    echo "  VITE_N8N_WEBHOOK_URL     — http://<SERVER_IP>:5678/webhook/tutor-confirmation"
+    echo ""
+    echo "Easiest: add them in Vercel dashboard → Settings → Environment Variables"
+    echo "then redeploy with:  npx vercel --prod  (inside frontend/)"
+    echo ""
   fi
 
-  for file in backend/flows/*.json; do
-    echo "   → Importando: $file"
-    curl -s -X POST "$N8N_CLOUD_URL/api/v1/workflows" \
-      -H "X-N8N-API-KEY: $N8N_CLOUD_API_KEY" \
-      -H "Content-Type: application/json" \
-      -d @"$file" > /dev/null
-  done
-  echo "✅  Flujos subidos a n8n cloud."
+  cd frontend
+
+  if command -v vercel &> /dev/null; then
+    echo "Deploying to Vercel..."
+    npx vercel --prod
+  else
+    echo "Vercel CLI not found — building locally instead."
+    npm run build
+    echo ""
+    echo "Build ready at frontend/dist/"
+    echo "To deploy, run one of:"
+    echo "   cd frontend && npx vercel --prod"
+    echo "   OR push to your connected GitHub repo (auto-deploy)"
+  fi
+
+  cd ..
+  echo "Frontend done."
 fi
 
-if [ "$DEPLOY_FRONTEND" = true ]; then
-  echo "🌐  Construyendo frontend..."
-  cd frontend && npm run build && cd ..
+# ── Server → Hetzner ──────────────────────────────────────────────────────────
+if [ "$DEPLOY_SERVER" = true ]; then
+  SERVER_IP="${SERVER_IP:-89.167.116.47}"
+  SERVER_USER="${SERVER_USER:-root}"
+  REMOTE_DIR="${REMOTE_DIR:-/opt/tutopool}"
 
-  # TODO: ajustar al proveedor de hosting elegido
-  # Opciones: Vercel, Netlify, un servidor propio vía rsync/scp
-  # Ejemplo Vercel:
-  #   cd frontend && npx vercel --prod
-  # Ejemplo rsync a servidor propio:
-  #   rsync -avz frontend/dist/ user@tuservidor.com:/var/www/tutopool/
-  echo "⚠️  Agrega el comando de deploy del frontend en scripts/deploy.sh (línea ~50)"
-  echo "✅  Build listo en frontend/dist/"
+  echo "Deploying to Hetzner ($SERVER_USER@$SERVER_IP)..."
+
+  ssh "$SERVER_USER@$SERVER_IP" "
+    cd $REMOTE_DIR &&
+    git pull &&
+    bash scripts/resolve-kong.sh .env &&
+    docker compose pull &&
+    docker compose up -d &&
+    docker compose logs migrations --tail=30
+  "
+
+  echo "Server deploy done."
 fi
 
 echo ""
-echo "🚀  Deploy completado."
+echo "Deploy complete."

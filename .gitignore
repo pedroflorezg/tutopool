@@ -16,5 +16,10 @@ frontend/dist/
 frontend/.env
 frontend/.env.local
 
+# Production env (contains real secrets — never commit)
+.env.production
+frontend/.env.production
+
 # OS
 .DS_Store
+.vercel
