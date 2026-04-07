@@ -1,6 +1,18 @@
 {
     "rewrites": [
         {
+            "source": "/rest/v1/:path*",
+            "destination": "http://89.167.116.47:8000/rest/v1/:path*"
+        },
+        {
+            "source": "/auth/v1/:path*",
+            "destination": "http://89.167.116.47:8000/auth/v1/:path*"
+        },
+        {
+            "source": "/storage/v1/:path*",
+            "destination": "http://89.167.116.47:8000/storage/v1/:path*"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
