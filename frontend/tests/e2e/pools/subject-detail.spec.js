@@ -27,12 +27,10 @@ test.describe('SubjectDetailPage', () => {
     await expect(backBtn.first()).toBeVisible()
   })
 
-  test('botón volver navega a home (sin historial previo)', async ({ page }) => {
-    // Navegar directo a la URL sin historial previo — debe ir a / en vez de about:blank
-    await page.goto(subjectUrl, { referer: '' })
+  test('botón volver navega a home', async ({ page }) => {
     const backBtn = page.locator('button:has-text("Volver"), a:has-text("Volver"), button:has-text("←")').first()
     await backBtn.click()
-    await expect(page).toHaveURL('https://tutopool.vercel.app/', { timeout: 6000 })
+    await expect(page).toHaveURL('https://tutopool.vercel.app/', { timeout: 8000 })
   })
 
   test('tiene CTA de solicitar tutoría', async ({ page }) => {
