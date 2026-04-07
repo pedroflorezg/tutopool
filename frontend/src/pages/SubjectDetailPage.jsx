@@ -72,7 +72,7 @@ export default function SubjectDetailPage() {
       }}>
         <div className="container">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/')}
             style={{
               background: 'none', border: 'none',
               color: 'var(--color-gray-400)', cursor: 'pointer',
