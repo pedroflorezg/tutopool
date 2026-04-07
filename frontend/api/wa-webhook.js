@@ -1,9 +1,19 @@
-import { createClient } from '@supabase/supabase-js'
+const SUPA_URL  = process.env.SUPABASE_URL
+const SUPA_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY
+const HEADERS   = { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+async function db(path) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, { headers: HEADERS })
+  return r.json()
+}
+
+async function dbPatch(table, filter, patch) {
+  await fetch(`${SUPA_URL}/rest/v1/${table}?${filter}`, {
+    method: 'PATCH',
+    headers: { ...HEADERS, Prefer: 'return=minimal' },
+    body: JSON.stringify(patch),
+  })
+}
 
 async function sendWA(to, body) {
   const sid   = process.env.TWILIO_ACCOUNT_SID
@@ -20,7 +30,7 @@ async function sendWA(to, body) {
   })
 }
 
-function twimlReply(msg) {
+function twiml(msg) {
   return `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${msg}</Message></Response>`
 }
 
@@ -39,56 +49,44 @@ export default async function handler(req, res) {
   const denied    = upper === 'NO'
 
   if (!confirmed && !denied) {
-    return res.status(200).send(twimlReply('Responde *SÍ* para confirmar o *NO* para cancelar la sesión.'))
+    return res.status(200).send(twiml('Responde *SÍ* para confirmar o *NO* para cancelar la sesión.'))
   }
 
   // ── Find tutor by phone ──────────────────────────────────────────────────
-  const { data: tutor } = await supabase
-    .from('tutores')
-    .select('id, nombre')
-    .eq('telefono', from)
-    .maybeSingle()
+  const tutores = await db(`tutores?select=id,nombre&telefono=eq.${from}&limit=1`)
+  const tutor   = Array.isArray(tutores) ? tutores[0] : null
 
-  if (!tutor) {
-    return res.status(200).send(twimlReply('No encontramos tu perfil de tutor. Escríbenos a soporte.'))
-  }
+  if (!tutor) return res.status(200).send(twiml('No encontramos tu perfil de tutor. Escríbenos a soporte.'))
 
   // ── Find next upcoming active session for this tutor ────────────────────
-  const { data: sesion } = await supabase
-    .from('sesiones')
-    .select('id, fecha_inicio, materias(nombre)')
-    .eq('tutor_id', tutor.id)
-    .in('estado', ['confirmada', 'esperando_cupos'])
-    .gte('fecha_inicio', new Date().toISOString())
-    .order('fecha_inicio')
-    .limit(1)
-    .maybeSingle()
+  const now = new Date().toISOString()
+  const sesiones = await db(
+    `sesiones?select=id,fecha_inicio,materias(nombre)&tutor_id=eq.${tutor.id}&estado=in.(confirmada,esperando_cupos)&fecha_inicio=gte.${now}&order=fecha_inicio&limit=1`
+  )
+  const sesion = Array.isArray(sesiones) ? sesiones[0] : null
 
-  if (!sesion) {
-    return res.status(200).send(twimlReply('No tienes sesiones activas próximas registradas.'))
-  }
+  if (!sesion) return res.status(200).send(twiml('No tienes sesiones activas próximas registradas.'))
 
   const materia = sesion.materias?.nombre || 'tu materia'
   const fecha   = fmtFecha(sesion.fecha_inicio)
 
   // ── Update session status ────────────────────────────────────────────────
-  await supabase
-    .from('sesiones')
-    .update({ estado: confirmed ? 'confirmada' : 'cancelada' })
-    .eq('id', sesion.id)
+  await dbPatch('sesiones', `id=eq.${sesion.id}`, { estado: confirmed ? 'confirmada' : 'cancelada' })
 
   // ── Notify enrolled students ─────────────────────────────────────────────
-  const { data: inscripciones } = await supabase
-    .from('inscripciones')
-    .select('estudiante_id')
-    .eq('sesion_id', sesion.id)
+  const inscripciones = await db(`inscripciones?select=estudiante_id&sesion_id=eq.${sesion.id}`)
 
-  if (inscripciones?.length) {
-    const ids = inscripciones.map(i => i.estudiante_id)
-    const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 200 })
-    const students = (users || []).filter(u => ids.includes(u.id))
+  if (Array.isArray(inscripciones) && inscripciones.length > 0) {
+    const ids = inscripciones.map(i => `"${i.estudiante_id}"`).join(',')
 
-    for (const student of students) {
+    // Use the admin endpoint to get user info
+    const usersResp = await fetch(`${SUPA_URL}/auth/v1/admin/users`, {
+      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+    })
+    const usersData = await usersResp.json()
+    const users = (usersData.users || []).filter(u => inscripciones.some(i => i.estudiante_id === u.id))
+
+    for (const student of users) {
       const phone = student.phone?.replace(/\D/g, '')
       if (!phone) continue
       const nombre = student.user_metadata?.full_name
@@ -98,7 +96,7 @@ export default async function handler(req, res) {
 
       const msg = confirmed
         ? `✅ *TutoPool — Sesión Confirmada*\n\nHola ${nombre}! Tu sesión de *${materia}* del ${fecha} ha sido *confirmada* por el tutor ${tutor.nombre}. ¡Nos vemos pronto! 🚀`
-        : `❌ *TutoPool — Sesión Cancelada*\n\nHola ${nombre}, lamentamos informarte que la sesión de *${materia}* del ${fecha} fue *cancelada* por el tutor. Pronto te contactaremos para reagendarla. 🙏`
+        : `❌ *TutoPool — Sesión Cancelada*\n\nHola ${nombre}, lamentamos informarte que la sesión de *${materia}* del ${fecha} fue *cancelada*. Pronto te contactaremos para reagendarla. 🙏`
 
       await sendWA(phone, msg)
     }
@@ -106,8 +104,8 @@ export default async function handler(req, res) {
 
   // ── Reply to tutor ───────────────────────────────────────────────────────
   const reply = confirmed
-    ? `✅ ¡Perfecto, ${tutor.nombre}! La sesión de *${materia}* del ${fecha} ha sido confirmada. Los estudiantes ya fueron notificados.`
-    : `❌ Entendido, ${tutor.nombre}. La sesión de *${materia}* fue cancelada y los estudiantes han sido notificados.`
+    ? `✅ ¡Perfecto, ${tutor.nombre.split(' ')[0]}! La sesión de *${materia}* del ${fecha} ha sido confirmada. Los estudiantes ya fueron notificados.`
+    : `❌ Entendido, ${tutor.nombre.split(' ')[0]}. La sesión fue cancelada y los estudiantes han sido notificados.`
 
-  return res.status(200).send(twimlReply(reply))
+  return res.status(200).send(twiml(reply))
 }
