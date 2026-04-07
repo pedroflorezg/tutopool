@@ -1265,6 +1265,25 @@ function NotificacionesTab() {
     fetchSesiones()
   }
 
+  const avisarEstudiante = async (s) => {
+    if (!window.confirm(`¿Enviar WhatsApp al estudiante de la sesión solitaria de "${s.materias?.nombre}" para que elija?`)) return
+    try {
+      const resp = await fetch('/api/wa-notify-student', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sesion_id: s.id }),
+      })
+      const data = await resp.json()
+      if (resp.ok) {
+        alert(`✅ Mensaje enviado al estudiante. Estado: ${data.sent?.map(x => x.status).join(', ') || 'ok'}`)
+      } else {
+        alert(`❌ Error: ${data.error || JSON.stringify(data)}`)
+      }
+    } catch (e) {
+      alert(`❌ Error de red: ${e.message}`)
+    }
+  }
+
   const mailtoLink = (s, tipo) => {
     const subj  = encodeURIComponent(buildEmailSubj(tipo, s.materias?.nombre || 'tu materia'))
     const body  = encodeURIComponent(
@@ -1346,6 +1365,9 @@ function NotificacionesTab() {
           {solitario && (
             <>
               <div style={{ width:'1px', height:'20px', background:'var(--color-gray-200)' }} />
+              <button onClick={() => avisarEstudiante(s)} className="btn btn-secondary btn-sm" style={{ color:'var(--color-amber-600)', fontWeight:600 }}>
+                📱 Avisar al estudiante
+              </button>
               <button onClick={() => convertirAIndividual(s)} className="btn btn-secondary btn-sm" style={{ color:'var(--color-brand-600)', fontWeight:600 }}>
                 ↗ Convertir a individual
               </button>
@@ -1367,7 +1389,7 @@ function NotificacionesTab() {
           Notificaciones y seguimiento
         </h2>
         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-          <span style={{ fontSize:'0.75rem', color:'var(--color-gray-400)' }}>WhatsApp (Meta API):</span>
+          <span style={{ fontSize:'0.75rem', color:'var(--color-gray-400)' }}>WhatsApp (Twilio):</span>
           <span style={{
             fontSize:'0.75rem', fontWeight:700,
             color: waStatus === 'ready' ? 'var(--color-brand-600)' : waStatus === 'offline' ? 'var(--color-red-600)' : 'var(--color-amber-600)',
