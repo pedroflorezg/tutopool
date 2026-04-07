@@ -1157,19 +1157,16 @@ function ProgramasTab() {
 }
 
 // ─── Notificaciones Tab ───────────────────────────────────────────────────────
-const EVO_BASE     = '/evo'
-const EVO_INSTANCE = 'tutopool'
-const EVO_API_KEY  = 'tutopool-evo-2026'
 
 function buildMsgRecordatorio(s, fmtDate, fmtTime) {
   const ubicStr = s.formato === 'virtual'
     ? `💻 Virtual${s.enlace_virtual ? ' — ' + s.enlace_virtual : ''}`
     : `📍 Presencial — ${s.ubicacion || 'por confirmar'}`
-  return `🎓 *Recordatorio TutoPool*\n\nTienes una sesión de *${s.materias?.nombre || 'tu materia'}* en menos de 24 horas.\n\n📅 ${fmtDate(s.fecha_inicio)} · ${fmtTime(s.fecha_inicio)} – ${fmtTime(s.fecha_fin)}\n${ubicStr}\n👥 ${s.inscritos_actuales || 0}/${s.max_estudiantes || '—'} inscritos\n\n¿Alguna duda? Escríbenos. ¡Nos vemos pronto! 🚀`
+  return `🎓 *Recordatorio TutoPool*\n\nTienes una sesión de *${s.materias?.nombre || 'tu materia'}* en menos de 24 horas.\n\n📅 ${fmtDate(s.fecha_inicio)} · ${fmtTime(s.fecha_inicio)} – ${fmtTime(s.fecha_fin)}\n${ubicStr}\n👥 ${s.inscritos_actuales || 0}/${s.max_estudiantes || '—'} inscritos\n\n¿Alguna duda? Escríbenos. ¡Nos vemos pronto! 🚀\n\n¿Confirmas que darás esta sesión? Responde *SÍ* o *NO* 🙏`
 }
 
 function buildMsgSolitario(s, fmtDate) {
-  return `⚠️ *Aviso TutoPool*\n\nLa sesión grupal de *${s.materias?.nombre || 'tu materia'}* del ${fmtDate(s.fecha_inicio)} aún no alcanza el mínimo de ${s.min_estudiantes || 2} estudiantes.\n\nActualmente hay ${s.inscritos_actuales || 0} inscrito(s).\n\nEn breve te confirmamos si se realiza, se convierte a individual o se cancela. Cualquier novedad te avisamos. 🙏`
+  return `⚠️ *Aviso TutoPool*\n\nLa sesión grupal de *${s.materias?.nombre || 'tu materia'}* del ${fmtDate(s.fecha_inicio)} aún no alcanza el mínimo de ${s.min_estudiantes || 2} estudiantes.\n\nActualmente hay ${s.inscritos_actuales || 0} inscrito(s).\n\nEn breve te confirmamos si se realiza, se convierte a individual o se cancela. Cualquier novedad te avisamos. 🙏\n\n¿Podrías darnos la sesión aunque sea de forma individual? Responde *SÍ* o *NO* 🙏`
 }
 
 function buildEmailSubj(tipo, materia) {
@@ -1206,13 +1203,10 @@ function NotificacionesTab() {
 
   useEffect(() => { fetchSesiones() }, [fetchSesiones])
 
-  // Check WhatsApp (Evolution API) status
+  // Check WhatsApp (Meta API) status
   useEffect(() => {
-    fetch(`${EVO_BASE}/instance/connectionState/${EVO_INSTANCE}`, {
-      headers: { apikey: EVO_API_KEY },
-    })
-      .then(r => r.json())
-      .then(d => setWaStatus(d?.instance?.state === 'open' ? 'ready' : 'connecting'))
+    fetch('/api/wa-send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+      .then(r => r.status === 503 ? setWaStatus('offline') : setWaStatus('ready'))
       .catch(() => setWaStatus('offline'))
   }, [])
 
@@ -1244,15 +1238,15 @@ function NotificacionesTab() {
     if (!phone.trim()) { setSendResult('❌ Ingresa un número de WhatsApp.'); return }
     setSending(true); setSendResult('')
     try {
-      const res = await fetch(`${EVO_BASE}/message/sendText/${EVO_INSTANCE}`, {
+      const res = await fetch('/api/wa-send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: EVO_API_KEY },
-        body: JSON.stringify({ number: phone.trim(), text: msgText }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: phone.trim(), message: msgText }),
       })
       const data = await res.json()
-      setSendResult(res.ok ? '✅ Mensaje enviado con éxito.' : `❌ Error: ${data.message || JSON.stringify(data)}`)
+      setSendResult(res.ok ? '✅ Mensaje enviado con éxito.' : `❌ Error: ${data.error || JSON.stringify(data)}`)
     } catch {
-      setSendResult('❌ No se pudo conectar al servidor de WhatsApp.')
+      setSendResult('❌ No se pudo conectar al servidor.')
     }
     setSending(false)
   }
@@ -1371,16 +1365,18 @@ function NotificacionesTab() {
           Notificaciones y seguimiento
         </h2>
         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-          <span style={{ fontSize:'0.75rem', color:'var(--color-gray-400)' }}>Bridge WhatsApp:</span>
+          <span style={{ fontSize:'0.75rem', color:'var(--color-gray-400)' }}>WhatsApp (Meta API):</span>
           <span style={{
             fontSize:'0.75rem', fontWeight:700,
             color: waStatus === 'ready' ? 'var(--color-brand-600)' : waStatus === 'offline' ? 'var(--color-red-600)' : 'var(--color-amber-600)',
           }}>
-            {waStatus === 'ready' ? '● Conectado' : waStatus === 'offline' ? '● Sin conexión' : waStatus ? `● ${waStatus}` : '● Verificando…'}
+            {waStatus === 'ready' ? '● Configurado' : waStatus === 'offline' ? '● Sin configurar' : '● Verificando…'}
           </span>
           <button onClick={() => {
             setWaStatus(null)
-            fetch(`${WA_BRIDGE}/health`).then(r => r.json()).then(d => setWaStatus(d.status)).catch(() => setWaStatus('offline'))
+            fetch('/api/wa-send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+              .then(r => r.status === 503 ? setWaStatus('offline') : setWaStatus('ready'))
+              .catch(() => setWaStatus('offline'))
           }} className="btn btn-secondary btn-sm">↻</button>
         </div>
       </div>
