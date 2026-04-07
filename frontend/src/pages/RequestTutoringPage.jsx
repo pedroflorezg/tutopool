@@ -1,14 +1,13 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { supabase, isDemoMode, DEMO_MATERIAS, DEMO_TUTORES, calcPrecioGrupal } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { triggerTutorConfirmation } from '../lib/n8n'
 
-// Opciones de hora en bloques de 15 minutos (06:00 – 21:45)
-const TIME_OPTIONS = []
+const ALL_TIME_OPTIONS = []
 for (let h = 6; h <= 21; h++) {
   for (const m of [0, 15, 30, 45]) {
-    TIME_OPTIONS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
+    ALL_TIME_OPTIONS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
   }
 }
 
@@ -31,24 +30,57 @@ export default function RequestTutoringPage() {
 
   useEffect(() => {
     if (isDemoMode) return
-    // Fetch materia
     supabase.from('materias').select('*, materia_programas(semestre, programas(nombre))')
       .eq('id', materiaId).single()
       .then(({ data }) => { if (data) setMateria(data) })
-    // Fetch tutores activos para esta materia
-    supabase.from('tutores').select('*, tutor_materias!inner(materia_id)')
+    supabase.from('tutores')
+      .select('*, tutor_materias!inner(materia_id)')
       .eq('tutor_materias.materia_id', materiaId).eq('activo', true)
       .then(({ data }) => { if (data) setTutores(data) })
   }, [materiaId])
 
   const update = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
 
+  // Tutor seleccionado (o null si es aleatorio)
+  const selectedTutor = tutores.find(t => t.id === form.tutorId) || null
+
+  // Restricciones del tutor seleccionado
+  const restrictions = useMemo(() => {
+    if (!selectedTutor) return { tipo: null, formato: null, horas: [] }
+    return {
+      tipo: selectedTutor.tipo_sesion || 'ambos',          // 'individual'|'grupal'|'ambos'
+      formato: selectedTutor.formato_preferido || 'ambos', // 'presencial'|'virtual'|'ambos'
+      horas: selectedTutor.horas_bloqueadas || [],          // ["08","14",...]
+    }
+  }, [selectedTutor])
+
+  // Cuando cambia el tutor, ajustar tipo/formato automáticamente si hay restricción
+  useEffect(() => {
+    if (!selectedTutor) return
+    if (restrictions.tipo === 'individual' && form.tipo === 'grupal') update('tipo', 'individual')
+    if (restrictions.tipo === 'grupal'     && form.tipo === 'individual') update('tipo', 'grupal')
+    if (restrictions.formato === 'presencial' && form.formato === 'virtual')   update('formato', 'presencial')
+    if (restrictions.formato === 'virtual'    && form.formato === 'presencial') update('formato', 'virtual')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.tutorId])
+
+  // Horas disponibles según tutor seleccionado
+  const timeOptions = useMemo(() => {
+    if (restrictions.horas.length === 0) return ALL_TIME_OPTIONS
+    return ALL_TIME_OPTIONS.filter(t => !restrictions.horas.includes(t.slice(0, 2)))
+  }, [restrictions.horas])
+
+  // Si la hora seleccionada quedó bloqueada al cambiar tutor, limpiarla
+  useEffect(() => {
+    if (form.hora && !timeOptions.includes(form.hora)) update('hora', '')
+  }, [timeOptions, form.hora])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     if (!user) { setError('Debes iniciar sesión para solicitar una tutoría.'); return }
     if (!form.fecha) { setError('Por favor selecciona la fecha deseada.'); return }
-    if (!form.hora) { setError('Por favor selecciona la hora de la tutoría.'); return }
+    if (!form.hora)  { setError('Por favor selecciona la hora de la tutoría.'); return }
     setSubmitting(true)
     try {
       if (!isDemoMode) {
@@ -62,7 +94,7 @@ export default function RequestTutoringPage() {
           notas: `[Tutor: ${form.tutorId}] [Dur. ${form.duracion}m]\n${form.notas || ''}`.trim(),
         })
         if (dbError) {
-          if (dbError.code === '23503') throw new Error('Ocurrió un error al enviar tu solicitud. Por favor inicia sesión nuevamente.')
+          if (dbError.code === '23503') throw new Error('Ocurrió un error. Por favor inicia sesión nuevamente.')
           throw new Error('Ocurrió un error al enviar tu solicitud. Intenta de nuevo.')
         }
       } else {
@@ -105,7 +137,6 @@ export default function RequestTutoringPage() {
   const nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 8)
   const maxDate = nextWeek.toISOString().split('T')[0]
 
-  const selectedTutor = tutores.find(t => t.id === form.tutorId)
   let precioCalculado = 0
   if (selectedTutor) {
     const base = form.formato === 'presencial'
@@ -119,10 +150,21 @@ export default function RequestTutoringPage() {
 
   const formatPrice = (p) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(p)
 
+  const tipoDisabled = (tipo) => {
+    if (restrictions.tipo === 'individual' && tipo === 'grupal') return true
+    if (restrictions.tipo === 'grupal' && tipo === 'individual') return true
+    return false
+  }
+  const formatoDisabled = (fmt) => {
+    if (restrictions.formato === 'presencial' && fmt === 'virtual') return true
+    if (restrictions.formato === 'virtual' && fmt === 'presencial') return true
+    return false
+  }
+
   return (
     <div style={{ background: 'var(--color-gray-50)', minHeight: 'calc(100vh - 60px)', padding: '32px 16px 64px' }}>
       <div style={{ maxWidth: '560px', margin: '0 auto' }}>
-        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: 'var(--color-gray-500)', cursor: 'pointer', fontSize: '0.875rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '6px', padding: 0 }}>
+        <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', color: 'var(--color-gray-500)', cursor: 'pointer', fontSize: '0.875rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '6px', padding: 0 }}>
           ← Volver
         </button>
 
@@ -132,9 +174,7 @@ export default function RequestTutoringPage() {
               Solicitar Tutoría
             </h1>
             {materia && (
-              <p style={{ color: 'var(--color-gray-500)', fontSize: '0.875rem' }}>
-                {materia.nombre} · {materia.codigo}
-              </p>
+              <p style={{ color: 'var(--color-gray-500)', fontSize: '0.875rem' }}>{materia.nombre}</p>
             )}
           </div>
 
@@ -143,8 +183,22 @@ export default function RequestTutoringPage() {
             <div>
               <label className="input-label">Tipo de tutoría</label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <OptionCard selected={form.tipo === 'individual'} onClick={() => update('tipo', 'individual')} label="Individual" desc="Solo tú con el tutor" id="tipo-individual" />
-                <OptionCard selected={form.tipo === 'grupal'} onClick={() => update('tipo', 'grupal')} label="Grupal" desc="40% de descuento" id="tipo-grupal" />
+                <OptionCard
+                  selected={form.tipo === 'individual'}
+                  onClick={() => update('tipo', 'individual')}
+                  label="Individual" desc="Solo tú con el tutor"
+                  id="tipo-individual"
+                  disabled={tipoDisabled('individual')}
+                  disabledMsg="Este tutor no da sesiones individuales"
+                />
+                <OptionCard
+                  selected={form.tipo === 'grupal'}
+                  onClick={() => update('tipo', 'grupal')}
+                  label="Grupal" desc="40% de descuento"
+                  id="tipo-grupal"
+                  disabled={tipoDisabled('grupal')}
+                  disabledMsg="Este tutor no da sesiones grupales"
+                />
               </div>
             </div>
 
@@ -152,8 +206,22 @@ export default function RequestTutoringPage() {
             <div>
               <label className="input-label">Formato</label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <OptionCard selected={form.formato === 'presencial'} onClick={() => update('formato', 'presencial')} label="Presencial" desc="En la universidad" id="formato-presencial" />
-                <OptionCard selected={form.formato === 'virtual'} onClick={() => update('formato', 'virtual')} label="Virtual" desc="Desde donde estés" id="formato-virtual" />
+                <OptionCard
+                  selected={form.formato === 'presencial'}
+                  onClick={() => update('formato', 'presencial')}
+                  label="Presencial" desc="En la universidad"
+                  id="formato-presencial"
+                  disabled={formatoDisabled('presencial')}
+                  disabledMsg="Este tutor solo da clases virtuales"
+                />
+                <OptionCard
+                  selected={form.formato === 'virtual'}
+                  onClick={() => update('formato', 'virtual')}
+                  label="Virtual" desc="Desde donde estés"
+                  id="formato-virtual"
+                  disabled={formatoDisabled('virtual')}
+                  disabledMsg="Este tutor solo da clases presenciales"
+                />
               </div>
             </div>
 
@@ -164,10 +232,17 @@ export default function RequestTutoringPage() {
                 <input id="request-date" type="date" min={minDate} max={maxDate} value={form.fecha} onChange={(e) => update('fecha', e.target.value)} className="input-field" />
               </div>
               <div>
-                <label className="input-label" htmlFor="request-time">Hora de inicio</label>
+                <label className="input-label" htmlFor="request-time">
+                  Hora de inicio
+                  {restrictions.horas.length > 0 && (
+                    <span style={{ fontWeight: 400, color: 'var(--color-amber-600)', marginLeft: '6px', fontSize: '0.7rem' }}>
+                      ⚠️ Algunas horas no disponibles
+                    </span>
+                  )}
+                </label>
                 <select id="request-time" value={form.hora} onChange={(e) => update('hora', e.target.value)} className="input-field" style={{ cursor: 'pointer' }} required>
                   <option value="">Seleccionar hora</option>
-                  {TIME_OPTIONS.map(t => (
+                  {timeOptions.map(t => (
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
@@ -206,11 +281,7 @@ export default function RequestTutoringPage() {
             {error && (
               <div style={{ padding: '10px 14px', background: 'var(--color-red-50)', border: '1px solid #fecaca', borderRadius: '8px', color: 'var(--color-red-600)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
                 <span>{error}</span>
-                {!user && (
-                  <Link to="/login" className="btn btn-primary btn-sm" style={{ flexShrink: 0 }}>
-                    Iniciar sesión
-                  </Link>
-                )}
+                {!user && <Link to="/login" className="btn btn-primary btn-sm" style={{ flexShrink: 0 }}>Iniciar sesión</Link>}
               </div>
             )}
 
@@ -246,16 +317,22 @@ export default function RequestTutoringPage() {
   )
 }
 
-function OptionCard({ selected, onClick, label, desc, id }) {
+function OptionCard({ selected, onClick, label, desc, id, disabled, disabledMsg }) {
   return (
-    <button type="button" id={id} onClick={onClick} style={{
-      padding: '14px 12px', borderRadius: '10px', cursor: 'pointer', textAlign: 'center',
-      border: selected ? '2px solid var(--color-brand-500)' : '1.5px solid var(--color-gray-200)',
-      background: selected ? 'var(--color-brand-50)' : 'white',
-      transition: 'all 0.15s ease', color: 'inherit',
-    }}>
-      <p style={{ fontWeight: 600, fontSize: '0.875rem', color: selected ? 'var(--color-brand-700)' : 'var(--color-gray-800)', marginBottom: '2px' }}>{label}</p>
-      <p style={{ fontSize: '0.72rem', color: 'var(--color-gray-500)' }}>{desc}</p>
-    </button>
+    <div title={disabled ? disabledMsg : undefined} style={{ position: 'relative' }}>
+      <button type="button" id={id} onClick={disabled ? undefined : onClick} style={{
+        width: '100%',
+        padding: '14px 12px', borderRadius: '10px', cursor: disabled ? 'not-allowed' : 'pointer', textAlign: 'center',
+        border: selected ? '2px solid var(--color-brand-500)' : '1.5px solid var(--color-gray-200)',
+        background: disabled ? 'var(--color-gray-50)' : selected ? 'var(--color-brand-50)' : 'white',
+        opacity: disabled ? 0.5 : 1,
+        transition: 'all 0.15s ease', color: 'inherit',
+      }}>
+        <p style={{ fontWeight: 600, fontSize: '0.875rem', color: disabled ? 'var(--color-gray-400)' : selected ? 'var(--color-brand-700)' : 'var(--color-gray-800)', marginBottom: '2px' }}>{label}</p>
+        <p style={{ fontSize: '0.72rem', color: disabled ? 'var(--color-gray-300)' : 'var(--color-gray-500)' }}>
+          {disabled ? disabledMsg : desc}
+        </p>
+      </button>
+    </div>
   )
 }
