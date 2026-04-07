@@ -43,10 +43,11 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).send('<Response></Response>')
 
   const from    = String(req.body?.From || '').replace('whatsapp:', '').replace('+', '').trim()
-  const rawBody = String(req.body?.Body || '').trim()
-  const upper   = rawBody.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()
-  const confirmed = upper === 'SI' || upper === 'SII'
-  const denied    = upper === 'NO'
+  // ButtonPayload = id del botón presionado (SI / NO); Body = título visible del botón
+  const payload = String(req.body?.ButtonPayload || req.body?.Body || '').trim()
+  const upper   = payload.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()
+  const confirmed = upper === 'SI' || upper.startsWith('SI,') || upper.includes('CONFIRMO')
+  const denied    = upper === 'NO' || upper.startsWith('NO,') || upper.includes('CANCELO')
 
   if (!confirmed && !denied) {
     return res.status(200).send(twiml('Responde *SÍ* para confirmar o *NO* para cancelar la sesión.'))
