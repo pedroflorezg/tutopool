@@ -715,11 +715,11 @@ function ClasesTab() {
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
                   <div>
                     <label className="input-label">Inicio</label>
-                    <input type="datetime-local" value={form.fecha_inicio} onChange={e => u('fecha_inicio', e.target.value)} className="input-field" required />
+                    <input type="datetime-local" step="900" value={form.fecha_inicio} onChange={e => u('fecha_inicio', e.target.value)} className="input-field" required />
                   </div>
                   <div>
                     <label className="input-label">Fin</label>
-                    <input type="datetime-local" value={form.fecha_fin} onChange={e => u('fecha_fin', e.target.value)} className="input-field" required />
+                    <input type="datetime-local" step="900" value={form.fecha_fin} onChange={e => u('fecha_fin', e.target.value)} className="input-field" required />
                   </div>
                 </div>
               </Section>
