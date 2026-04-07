@@ -46,12 +46,12 @@ export default function AdminPage() {
   useEffect(() => {
     if (!user) return
     // Quick debug probe
-    supabase.from('tutores').select('count', { count: 'exact', head: true }).then(({ count, error }) => {
+    supabase.from('tutores').select('id,nombre').limit(1).then(({ data, error }) => {
       setDebugInfo({
         url: import.meta.env.VITE_SUPABASE_URL,
         userEmail: user.email,
-        tutoresCount: count,
-        error: error ? `${error.code}: ${error.message}` : null,
+        data: data ? JSON.stringify(data) : 'null',
+        error: error ? JSON.stringify({ msg: error.message, code: error.code, status: error?.status }) : 'none',
       })
     })
   }, [user])
@@ -94,7 +94,7 @@ export default function AdminPage() {
       <div className="container" style={{ paddingTop: '28px', paddingBottom: '64px' }}>
         {debugInfo && (
           <div style={{ marginBottom: '16px', padding: '12px 16px', background: debugInfo.error ? '#fef2f2' : '#f0fdf4', border: `1px solid ${debugInfo.error ? '#fca5a5' : '#86efac'}`, borderRadius: '8px', fontSize: '0.78rem', fontFamily: 'monospace' }}>
-            <strong>Debug:</strong> URL={debugInfo.url} | user={debugInfo.userEmail} | tutores={debugInfo.tutoresCount} | error={debugInfo.error || 'none'}
+            <strong>Debug:</strong> URL={debugInfo.url} | user={debugInfo.userEmail} | data={debugInfo.data} | error={debugInfo.error}
           </div>
         )}
         <StatsRow />
