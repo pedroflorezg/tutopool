@@ -37,24 +37,9 @@ export default function AdminPage() {
   const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [tab, setTab] = useState('tutores')
-  const [debugInfo, setDebugInfo] = useState(null)
-
   useEffect(() => {
     if (!authLoading && (!user || user.email !== ADMIN_EMAIL)) navigate('/')
   }, [user, authLoading, navigate])
-
-  useEffect(() => {
-    if (!user) return
-    // Quick debug probe
-    supabase.from('tutores').select('id,nombre').limit(1).then(({ data, error }) => {
-      setDebugInfo({
-        url: import.meta.env.VITE_SUPABASE_URL,
-        userEmail: user.email,
-        data: data ? JSON.stringify(data) : 'null',
-        error: error ? JSON.stringify({ msg: error.message, code: error.code, status: error?.status }) : 'none',
-      })
-    })
-  }, [user])
 
   if (authLoading || !user || user.email !== ADMIN_EMAIL) {
     return <div style={{ padding: '60px', textAlign: 'center', color: 'var(--color-gray-400)' }}>Verificando acceso…</div>
