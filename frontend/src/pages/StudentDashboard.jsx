@@ -192,7 +192,7 @@ export default function StudentDashboard() {
                       <span style={{ fontSize: '0.72rem', color: 'var(--color-gray-400)' }}>{sol.tipo} · {sol.formato}</span>
                     </div>
                     <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1rem', fontWeight: 700, color: 'var(--color-gray-900)', marginBottom: '4px' }}>
-                      {sol.materias?.nombre} <span style={{ fontSize: '0.78rem', fontWeight: 400, color: 'var(--color-gray-400)' }}>{sol.materias?.codigo}</span>
+                      {sol.materias?.nombre}
                     </h3>
                     <p style={{ fontSize: '0.82rem', color: 'var(--color-gray-500)' }}>
                       📅 {formatDate(sol.fecha_preferida)} · {sol.hora_preferida?.slice(0,5)}

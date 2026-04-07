@@ -112,7 +112,7 @@ export default function JoinPoolPage() {
     <div style={{ background: 'var(--color-gray-50)', minHeight: 'calc(100vh - 60px)', padding: '32px 16px 64px' }}>
       <div style={{ maxWidth: '560px', margin: '0 auto' }}>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/')}
           style={{
             background: 'none', border: 'none',
             color: 'var(--color-gray-500)', cursor: 'pointer',
