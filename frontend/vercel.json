@@ -1,10 +1,4 @@
 {
-    "crons": [
-        {
-            "path": "/api/cron-solitarios",
-            "schedule": "0 * * * *"
-        }
-    ],
     "rewrites": [
         {
             "source": "/rest/v1/:path*",
