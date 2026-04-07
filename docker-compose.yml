@@ -1,66 +1,311 @@
 services:
 
-  # ─── n8n ──────────────────────────────────────────────────────────────────
+  # ────────────────────────────────────────────────────────────────────────────
+  # SUPABASE STACK  (self-hosted — replaces Supabase Cloud)
+  # Kong listens on :8000  →  VITE_SUPABASE_URL = http://<SERVER_IP>:8000
+  # Studio dashboard       →  http://<SERVER_IP>:54323
+  # ────────────────────────────────────────────────────────────────────────────
+
+  db:
+    image: supabase/postgres:15.8.1.060
+    ports:
+      - "127.0.0.1:5432:5432"     # DB not exposed to internet, only loopback
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGPORT: 5432
+      POSTGRES_DB: postgres
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXP: 3600
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  # Runs app migrations once; skips already-applied files via a tracking table
+  migrations:
+    image: supabase/postgres:15.8.1.060
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    command: >
+      sh -c "
+        until pg_isready -h db -U postgres; do echo 'waiting for db...'; sleep 2; done &&
+        psql -h db -U postgres -d postgres -c
+          'CREATE TABLE IF NOT EXISTS _migrations (name text primary key, applied_at timestamptz default now())' &&
+        for f in /migrations/*.sql; do
+          name=$$(basename $$f);
+          exists=$$(psql -h db -U postgres -d postgres -Atc \"SELECT count(*) FROM _migrations WHERE name='$$name'\");
+          if [ \"$$exists\" = '0' ]; then
+            echo \"Applying $$name ...\";
+            psql -h db -U postgres -d postgres -f $$f &&
+            psql -h db -U postgres -d postgres -c \"INSERT INTO _migrations (name) VALUES ('$$name')\";
+          else
+            echo \"Skipping $$name (already applied)\";
+          fi;
+        done &&
+        echo 'All migrations done.'
+      "
+    volumes:
+      - ./supabase/migrations:/migrations:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  kong:
+    image: kong:2.8.1
+    ports:
+      - "8000:8000"     # public — Supabase API gateway
+      - "8443:8443"
+    volumes:
+      # The kong.yml on the server has env vars pre-substituted via scripts/resolve-kong.sh
+      - ./supabase/docker/volumes/api/kong.yml:/var/lib/kong/kong.yml:ro
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:-supabase}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  auth:
+    image: supabase/gotrue:v2.164.0
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL}
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: ${SITE_URL}
+      GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_DEFAULT_EXP: 3600
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: ${MAILER_AUTOCONFIRM:-false}
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_ADMIN_EMAIL}
+      GOTRUE_SMTP_HOST: ${SMTP_HOST}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT:-587}
+      GOTRUE_SMTP_USER: ${SMTP_USER}
+      GOTRUE_SMTP_PASS: ${SMTP_PASS}
+      GOTRUE_SMTP_SENDER_NAME: TutoPool
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
+      GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOOGLE_OAUTH_ENABLED:-false}
+      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_SECRET}
+      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
+      GOTRUE_EXTERNAL_AZURE_ENABLED: ${AZURE_OAUTH_ENABLED:-false}
+      GOTRUE_EXTERNAL_AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
+      GOTRUE_EXTERNAL_AZURE_SECRET: ${AZURE_SECRET}
+      GOTRUE_EXTERNAL_AZURE_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  rest:
+    image: postgrest/postgrest:v12.2.0
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,storage,graphql_public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
+      PGRST_APP_SETTINGS_JWT_EXP: "3600"
+    command: postgrest
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  realtime:
+    image: supabase/realtime:v2.33.72
+    environment:
+      PORT: "4000"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: supabase_admin
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: postgres
+      DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
+      DB_ENC_KEY: supabaserealtime
+      API_JWT_SECRET: ${JWT_SECRET}
+      FLY_ALLOC_ID: fly123
+      FLY_APP_NAME: realtime
+      SECRET_KEY_BASE: ${REALTIME_SECRET_KEY_BASE}
+      APP_NAME: realtime-dev
+      HOSTNAME: localhost
+      ERL_AFLAGS: -proto_dist inet_tcp
+      ENABLE_TAILSCALE: "false"
+      DNS_NODES: "''"
+      RLIMIT_NOFILE: "65536"
+    command: >
+      sh -c "/app/bin/migrate &&
+             /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' &&
+             /app/bin/server"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  storage:
+    image: supabase/storage-api:v1.11.13
+    volumes:
+      - storage_data:/var/lib/storage
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      FILE_SIZE_LIMIT: "52428800"
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: stub
+      GLOBAL_S3_BUCKET: stub
+      ENABLE_IMAGE_TRANSFORMATION: "true"
+      IMGPROXY_URL: http://imgproxy:5001
+    depends_on:
+      db:
+        condition: service_healthy
+      rest:
+        condition: service_started
+      imgproxy:
+        condition: service_started
+    restart: unless-stopped
+
+  imgproxy:
+    image: darthsim/imgproxy:v3.8.0
+    environment:
+      IMGPROXY_BIND: ":5001"
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
+      IMGPROXY_USE_ETAG: "true"
+      IMGPROXY_ENABLE_WEBP_DETECTION: "true"
+    volumes:
+      - storage_data:/var/lib/storage:ro
+    restart: unless-stopped
+
+  meta:
+    image: supabase/postgres-meta:v0.83.2
+    environment:
+      PG_META_PORT: "8080"
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: "5432"
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: supabase_admin
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  studio:
+    image: supabase/studio:latest
+    ports:
+      - "54323:3000"    # DB dashboard — protect with firewall in production
+    environment:
+      STUDIO_PG_META_URL: http://meta:8080
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DEFAULT_ORGANIZATION_NAME: TutoPool
+      DEFAULT_PROJECT_NAME: TutoPool
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: ${API_EXTERNAL_URL}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      NEXT_PUBLIC_ENABLE_LOGS: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+      kong:
+        condition: service_started
+    restart: unless-stopped
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # APP SERVICES
+  # ────────────────────────────────────────────────────────────────────────────
+
   n8n:
     image: docker.n8n.io/n8nio/n8n:latest
     ports:
       - "5678:5678"
     environment:
-      - GENERIC_TIMEZONE=America/Bogota
-      - WEBHOOK_URL=http://localhost:5678
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=admin
-      # DB interna de n8n → Supabase local
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=host.docker.internal
-      - DB_POSTGRESDB_PORT=54322
-      - DB_POSTGRESDB_DATABASE=postgres
-      - DB_POSTGRESDB_USER=postgres
-      - DB_POSTGRESDB_PASSWORD=postgres
-      # WhatsApp Bridge (proceso Node.js corriendo en el host en puerto 3001)
-      - WA_BRIDGE_URL=http://host.docker.internal:3001
+      GENERIC_TIMEZONE: America/Bogota
+      WEBHOOK_URL: http://${SERVER_IP}:5678
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: ${N8N_USER:-admin}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_PASSWORD}
+      # n8n stores its own data in a dedicated schema on the same Postgres
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: db
+      DB_POSTGRESDB_PORT: "5432"
+      DB_POSTGRESDB_DATABASE: postgres
+      DB_POSTGRESDB_USER: postgres
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_POSTGRESDB_SCHEMA: n8n
+      # Evolution API is now a sibling container on the same network
+      WA_BRIDGE_URL: http://evolution-api:8080
     volumes:
       - n8n_data:/home/node/.n8n
       - ./backend/flows:/home/node/flows
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     depends_on:
-      - evolution-api
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
-  # ─── Evolution API (WhatsApp personal) ────────────────────────────────────
   evolution-api:
     image: atendai/evolution-api:latest
-    platform: linux/amd64
     ports:
       - "8080:8080"
     environment:
-      - SERVER_URL=http://localhost:8080
-      - AUTHENTICATION_TYPE=apikey
-      - AUTHENTICATION_API_KEY=tutopool-evo-2026
-      - AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
-      # Instancia no se elimina al desconectar
-      - DEL_INSTANCE=false
-      # Almacenamiento en Supabase local (PostgreSQL)
-      - DATABASE_ENABLED=true
-      - DATABASE_PROVIDER=postgresql
-      - DATABASE_CONNECTION_URI=postgresql://postgres:postgres@host.docker.internal:54322/postgres?schema=evolution_api
-      - DATABASE_CONNECTION_CLIENT_NAME=evolution_api
-      - DATABASE_SAVE_DATA_INSTANCE=true
-      - DATABASE_SAVE_DATA_NEW_MESSAGE=true
-      - DATABASE_SAVE_MESSAGE_UPDATE=true
-      - DATABASE_SAVE_DATA_CONTACTS=true
-      - DATABASE_SAVE_DATA_CHATS=true
-      # Desactivar Redis (no está disponible en este entorno)
-      - CACHE_REDIS_ENABLED=false
-      - CACHE_LOCAL_ENABLED=true
-      # QR code en el log (útil en local)
-      - QRCODE_LIMIT=30
-      - QRCODE_COLOR=#059669
+      SERVER_URL: http://${SERVER_IP}:8080
+      AUTHENTICATION_TYPE: apikey
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}
+      AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES: "true"
+      DEL_INSTANCE: "false"
+      DATABASE_ENABLED: "true"
+      DATABASE_PROVIDER: postgresql
+      # Uses the same Postgres — dedicated schema
+      DATABASE_CONNECTION_URI: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/postgres?schema=evolution_api
+      DATABASE_CONNECTION_CLIENT_NAME: evolution_api
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "true"
+      DATABASE_SAVE_MESSAGE_UPDATE: "true"
+      DATABASE_SAVE_DATA_CONTACTS: "true"
+      DATABASE_SAVE_DATA_CHATS: "true"
+      CACHE_REDIS_ENABLED: "false"
+      CACHE_LOCAL_ENABLED: "true"
+      QRCODE_LIMIT: 30
+      QRCODE_COLOR: "#059669"
     volumes:
       - evolution_data:/evolution/instances
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
+  db_data:
+  storage_data:
   n8n_data:
   evolution_data:
