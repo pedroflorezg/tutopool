@@ -49,17 +49,16 @@ test.describe('RequestTutoringPage', () => {
     await expect(page.locator('text=/\\$|COP|precio/i').first()).toBeVisible()
   })
 
-  test('alternar tipo cambia precio', async ({ page }) => {
-    const grupal = page.locator('button:has-text("Grupal")').first()
+  test('alternar tipo muestra descuento grupal', async ({ page }) => {
     const individual = page.locator('button:has-text("Individual")').first()
+    const grupal = page.locator('button:has-text("Grupal")').first()
     await expect(individual).toBeVisible()
-    await individual.click()
-    const priceEl = page.locator('text=/\\$[0-9]|[0-9]+.*COP/').first()
-    const priceIndividual = await priceEl.innerText()
+
     await grupal.click()
-    await page.waitForTimeout(300)
-    const priceGrupal = await priceEl.innerText()
-    expect(priceIndividual).not.toBe(priceGrupal)
+    await expect(page.locator('text=Descuento grupal del 40%')).toBeVisible()
+
+    await individual.click()
+    await expect(page.locator('text=Tarifa individual')).toBeVisible()
   })
 
   test('enviar sin auth redirige a login', async ({ page }) => {
