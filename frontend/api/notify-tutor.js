@@ -12,16 +12,15 @@ async function db(path) {
   return r.json()
 }
 
-async function sendWA(to, body) {
-  const sid      = process.env.TWILIO_ACCOUNT_SID
-  const token    = process.env.TWILIO_AUTH_TOKEN
-  const from     = process.env.TWILIO_WA_FROM
-  const contentSid = process.env.TWILIO_CONTENT_SID
+async function sendWA(to, body, contentSid = null, contentVars = null) {
+  const sid   = process.env.TWILIO_ACCOUNT_SID
+  const token = process.env.TWILIO_AUTH_TOKEN
+  const from  = process.env.TWILIO_WA_FROM
   if (!sid || !token || !from) return null
 
   const number = `whatsapp:+${String(to).replace(/\D/g, '')}`
-  const params = contentSid
-    ? { From: from, To: number, ContentSid: contentSid, ContentVariables: JSON.stringify({ '1': body }) }
+  const params = (contentSid && contentVars)
+    ? { From: from, To: number, ContentSid: contentSid, ContentVariables: JSON.stringify(contentVars) }
     : { From: from, To: number, Body: body }
 
   const resp = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
@@ -73,8 +72,17 @@ export default async function handler(req, res) {
     `• Tipo: ${tipo} · ${formato}\n\n` +
     `Responde *SÍ* para confirmar o *NO* para cancelar.`
 
+  const newSolicitudSid = process.env.TWILIO_CONTENT_SID_NUEVA_SOLICITUD
+  const contentVars = newSolicitudSid ? {
+    '1': tutor.nombre.split(' ')[0],
+    '2': nombreEstudiante,
+    '3': materia,
+    '4': `${fecha}${hora ? ' a las ' + hora : ''}`,
+    '5': `${tipo} · ${formato}`,
+  } : null
+
   const [waResult, emailResult] = await Promise.all([
-    tutor.telefono ? sendWA(tutor.telefono, msg) : Promise.resolve(null),
+    tutor.telefono ? sendWA(tutor.telefono, msg, newSolicitudSid, contentVars) : Promise.resolve(null),
     tutor.email    ? sendEmail(tutor.email, `📚 Nueva solicitud de tutoría — ${materia}`, toHtml(msg)) : Promise.resolve(null),
   ])
 

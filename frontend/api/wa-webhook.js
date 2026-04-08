@@ -25,24 +25,28 @@ async function getAuthUsers() {
   return d.users || []
 }
 
-async function sendWA(to, body) {
+async function sendWA(to, body, contentSid = null, vars = null) {
   const sid   = process.env.TWILIO_ACCOUNT_SID
   const token = process.env.TWILIO_AUTH_TOKEN
   const from  = process.env.TWILIO_WA_FROM
   if (!sid || !token || !from) return
+  const number = `whatsapp:+${String(to).replace(/\D/g, '')}`
+  const params = (contentSid && vars)
+    ? { From: from, To: number, ContentSid: contentSid, ContentVariables: JSON.stringify(vars) }
+    : { From: from, To: number, Body: body }
   await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
     method: 'POST',
     headers: {
       Authorization: 'Basic ' + Buffer.from(`${sid}:${token}`).toString('base64'),
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: new URLSearchParams({ From: from, To: `whatsapp:+${String(to).replace(/\D/g, '')}`, Body: body }).toString(),
+    body: new URLSearchParams(params).toString(),
   })
 }
 
-async function notify(phone, email, subject, msg) {
+async function notify(phone, email, subject, msg, contentSid = null, vars = null) {
   await Promise.all([
-    phone ? sendWA(phone, msg) : Promise.resolve(),
+    phone ? sendWA(phone, msg, contentSid, vars) : Promise.resolve(),
     email ? sendEmail(email, subject, toHtml(msg)) : Promise.resolve(),
   ])
 }
@@ -78,6 +82,7 @@ async function handleTutor(from, confirmed) {
   if (Array.isArray(inscripciones) && inscripciones.length > 0) {
     const allUsers = await getAuthUsers()
     const students = allUsers.filter(u => inscripciones.some(i => i.estudiante_id === u.id))
+    const canceladaSid = confirmed ? null : process.env.TWILIO_CONTENT_SID_CANCELADA
     for (const student of students) {
       const phone  = student.phone?.replace(/\D/g, '')
       const email  = student.email
@@ -86,7 +91,8 @@ async function handleTutor(from, confirmed) {
         ? `✅ *TutoPool — Sesión Confirmada*\n\nHola ${nombre}! Tu sesión de *${materia}* del ${fecha} ha sido *confirmada* por el tutor ${tutor.nombre}. ¡Nos vemos pronto! 🚀`
         : `❌ *TutoPool — Sesión Cancelada*\n\nHola ${nombre}, la sesión de *${materia}* del ${fecha} fue *cancelada*. Pronto te contactaremos para reagendarla. 🙏`
       const subject = confirmed ? `✅ Sesión confirmada — ${materia}` : `❌ Sesión cancelada — ${materia}`
-      await notify(phone, email, subject, msg)
+      const vars = (canceladaSid && !confirmed) ? { '1': nombre, '2': materia, '3': fecha } : null
+      await notify(phone, email, subject, msg, canceladaSid, vars)
     }
   }
 
@@ -131,7 +137,13 @@ async function handleEstudiante(from, toIndividual) {
       ? `📌 *TutoPool — Sesión convertida a individual*\n\nHola ${tutor.nombre.split(' ')[0]}! El estudiante ${nombre} eligió convertir la sesión de *${materia}* del ${fecha} a *individual*. ¡Queda confirmada! 👍`
       : `❌ *TutoPool — Sesión cancelada por el estudiante*\n\nHola ${tutor.nombre.split(' ')[0]}, el estudiante ${nombre} canceló la sesión de *${materia}* del ${fecha}. Ya puedes liberar ese espacio.`
     const subject = toIndividual ? `📌 Sesión convertida a individual — ${materia}` : `❌ Sesión cancelada por estudiante — ${materia}`
-    await notify(tutor.telefono, tutor.email, subject, msg)
+    const templateSid = toIndividual
+      ? process.env.TWILIO_CONTENT_SID_CONVERTIDA
+      : process.env.TWILIO_CONTENT_SID_CANCELADA_ESTUD
+    const vars = templateSid
+      ? { '1': tutor.nombre.split(' ')[0], '2': nombre, '3': materia, '4': fecha }
+      : null
+    await notify(tutor.telefono, tutor.email, subject, msg, templateSid, vars)
   }
 
   const reply = toIndividual
