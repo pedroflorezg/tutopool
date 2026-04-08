@@ -32,7 +32,7 @@ export default async function handler(req, res) {
   const from       = process.env.TWILIO_WA_FROM
   const contentSid = process.env.TWILIO_CONTENT_SID_ESTUDIANTE
 
-  if (!sid || !token || !from || !contentSid) {
+  if (!sid || !token || !from) {
     return res.status(503).json({ error: 'WhatsApp no configurado' })
   }
 
@@ -77,12 +77,9 @@ export default async function handler(req, res) {
 
     const msgBody = `⚠️ *TutoPool — Tu sesión necesita una decisión*\n\nHola *${nombre}*! La sesión grupal de *${materia}* del ${fecha} no alcanzó el mínimo de estudiantes y solo quedas tú.\n\n💰 Precio individual: *${precio}*\n\n¿Qué prefieres hacer?`
 
-    const params = {
-      From: from,
-      To: `whatsapp:+${phone}`,
-      ContentSid: contentSid,
-      ContentVariables: JSON.stringify({ '1': msgBody }),
-    }
+    const params = contentSid
+      ? { From: from, To: `whatsapp:+${phone}`, ContentSid: contentSid, ContentVariables: JSON.stringify({ '1': msgBody }) }
+      : { From: from, To: `whatsapp:+${phone}`, Body: msgBody }
 
     const resp = await fetch(
       `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`,
