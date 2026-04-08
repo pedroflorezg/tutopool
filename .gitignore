@@ -23,3 +23,17 @@ frontend/.env.production
 # OS
 .DS_Store
 .vercel
+
+# WhatsApp bridge - Chromium runtime files (change constantly, not source code)
+backend/whatsapp-bridge/wa-session/session/Default/Local Storage/
+backend/whatsapp-bridge/wa-session/session/Default/Network Persistent State
+backend/whatsapp-bridge/wa-session/session/Default/Preferences
+backend/whatsapp-bridge/wa-session/session/Default/Service Worker/
+backend/whatsapp-bridge/wa-session/session/Default/TransportSecurity
+backend/whatsapp-bridge/wa-session/session/Local State
+backend/whatsapp-bridge/wa-session/session/CertificateRevocation/
+backend/whatsapp-bridge/wa-session/session/component_crx_cache/
+
+# Playwright test artifacts
+frontend/test-results/
+frontend/playwright-report/
