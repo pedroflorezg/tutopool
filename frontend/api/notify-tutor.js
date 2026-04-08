@@ -90,6 +90,8 @@ export default async function handler(req, res) {
     ok: true,
     notified: true,
     tutor: tutor.nombre,
-    twilio: result?.sid ? 'enviado' : result?.message || 'error',
+    twilio_sid: result?.sid || null,
+    twilio_status: result?.status || null,
+    twilio_error: result?.message || result?.code || null,
   })
 }
