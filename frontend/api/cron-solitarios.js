@@ -1,6 +1,7 @@
 // Cron job: revisa sesiones grupales con solo 1 estudiante que empiezan en las próximas 24h
-// y envía un WhatsApp al estudiante para que elija convertir a individual o cancelar.
-// Configura en vercel.json: { "crons": [{ "path": "/api/cron-solitarios", "schedule": "0 * * * *" }] }
+// y envía un WhatsApp + email al estudiante para que elija convertir a individual o cancelar.
+
+import { sendEmail, toHtml } from './_email.js'
 
 const SUPA_URL = process.env.SUPABASE_URL
 const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -62,37 +63,43 @@ async function notifyStudent(sesion) {
   const sent = []
 
   for (const student of students) {
-    const phone = student.phone?.replace(/\D/g, '')
-    if (!phone) continue
+    const phone  = student.phone?.replace(/\D/g, '')
+    const email  = student.email
+    if (!phone && !email) continue
 
     const nombre = student.user_metadata?.full_name
       || student.user_metadata?.name
-      || student.email?.split('@')[0]
+      || email?.split('@')[0]
       || 'estudiante'
 
-    const msgBody = `⚠️ *TutoPool — Tu sesión necesita una decisión*\n\nHola *${nombre}*! La sesión grupal de *${materia}* del ${fecha} no alcanzó el mínimo de estudiantes y solo quedas tú.\n\n💰 Precio individual: *${precio}*\n\n¿Qué prefieres hacer?`
+    const msgBody = `⚠️ *TutoPool — Tu sesión necesita una decisión*\n\nHola *${nombre}*! La sesión grupal de *${materia}* del ${fecha} no alcanzó el mínimo de estudiantes y solo quedas tú.\n\n💰 Precio individual: *${precio}*\n\nResponde *INDIVIDUAL* para convertirla o *CANCELAR* para cancelarla.`
 
-    const msgConOpciones = contentSid
-      ? msgBody
-      : `${msgBody}\n\nResponde *INDIVIDUAL* para convertirla o *CANCELAR* para cancelarla.`
-
-    const params = contentSid
-      ? { From: from, To: `whatsapp:+${phone}`, ContentSid: contentSid, ContentVariables: JSON.stringify({ '1': msgBody }) }
-      : { From: from, To: `whatsapp:+${phone}`, Body: msgConOpciones }
-
-    const resp = await fetch(
-      `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`,
-      {
+    // WhatsApp
+    let waStatus = 'sin teléfono'
+    if (phone) {
+      const params = contentSid
+        ? { From: from, To: `whatsapp:+${phone}`, ContentSid: contentSid, ContentVariables: JSON.stringify({ '1': msgBody }) }
+        : { From: from, To: `whatsapp:+${phone}`, Body: msgBody }
+      const resp = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
         method: 'POST',
         headers: {
           Authorization: 'Basic ' + Buffer.from(`${sid}:${token}`).toString('base64'),
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams(params).toString(),
-      }
-    )
-    const data = await resp.json()
-    sent.push({ phone, status: data.status, error: data.error_message })
+      })
+      const data = await resp.json()
+      waStatus = data.status || data.error_message || 'error'
+    }
+
+    // Email
+    let emailStatus = 'sin email'
+    if (email) {
+      const result = await sendEmail(email, `⚠️ Tu sesión grupal de ${materia} necesita una decisión`, toHtml(msgBody))
+      emailStatus = result.ok ? 'enviado' : (result.error || 'error')
+    }
+
+    sent.push({ phone, email, whatsapp: waStatus, email: emailStatus })
   }
 
   return sent

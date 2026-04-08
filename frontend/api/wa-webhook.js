@@ -1,3 +1,5 @@
+import { sendEmail, toHtml } from './_email.js'
+
 const SUPA_URL = process.env.SUPABASE_URL
 const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const HEADERS  = { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }
@@ -27,6 +29,7 @@ async function sendWA(to, body) {
   const sid   = process.env.TWILIO_ACCOUNT_SID
   const token = process.env.TWILIO_AUTH_TOKEN
   const from  = process.env.TWILIO_WA_FROM
+  if (!sid || !token || !from) return
   await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
     method: 'POST',
     headers: {
@@ -37,6 +40,13 @@ async function sendWA(to, body) {
   })
 }
 
+async function notify(phone, email, subject, msg) {
+  await Promise.all([
+    phone ? sendWA(phone, msg) : Promise.resolve(),
+    email ? sendEmail(email, subject, toHtml(msg)) : Promise.resolve(),
+  ])
+}
+
 function twiml(msg) {
   return `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${msg}</Message></Response>`
 }
@@ -45,11 +55,9 @@ function fmtFecha(iso) {
   return new Date(iso).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Flujo A: Tutor confirma o cancela una sesión (botones SÍ / NO)
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Flujo A: Tutor confirma o cancela ───────────────────────────────────────
 async function handleTutor(from, confirmed) {
-  const tutores = await db(`tutores?select=id,nombre&telefono=eq.${from}&limit=1`)
+  const tutores = await db(`tutores?select=id,nombre,email&telefono=eq.${from}&limit=1`)
   const tutor   = Array.isArray(tutores) ? tutores[0] : null
   if (!tutor) return twiml('No encontramos tu perfil de tutor. Escríbenos a soporte.')
 
@@ -65,19 +73,20 @@ async function handleTutor(from, confirmed) {
 
   await dbPatch('sesiones', `id=eq.${sesion.id}`, { estado: confirmed ? 'confirmada' : 'cancelada' })
 
-  // Notify students
+  // Notificar estudiantes por WA + email
   const inscripciones = await db(`inscripciones?select=estudiante_id&sesion_id=eq.${sesion.id}`)
   if (Array.isArray(inscripciones) && inscripciones.length > 0) {
     const allUsers = await getAuthUsers()
     const students = allUsers.filter(u => inscripciones.some(i => i.estudiante_id === u.id))
     for (const student of students) {
-      const phone = student.phone?.replace(/\D/g, '')
-      if (!phone) continue
-      const nombre = student.user_metadata?.full_name || student.user_metadata?.name || student.email?.split('@')[0] || 'estudiante'
+      const phone  = student.phone?.replace(/\D/g, '')
+      const email  = student.email
+      const nombre = student.user_metadata?.full_name || student.user_metadata?.name || email?.split('@')[0] || 'estudiante'
       const msg = confirmed
         ? `✅ *TutoPool — Sesión Confirmada*\n\nHola ${nombre}! Tu sesión de *${materia}* del ${fecha} ha sido *confirmada* por el tutor ${tutor.nombre}. ¡Nos vemos pronto! 🚀`
         : `❌ *TutoPool — Sesión Cancelada*\n\nHola ${nombre}, la sesión de *${materia}* del ${fecha} fue *cancelada*. Pronto te contactaremos para reagendarla. 🙏`
-      await sendWA(phone, msg)
+      const subject = confirmed ? `✅ Sesión confirmada — ${materia}` : `❌ Sesión cancelada — ${materia}`
+      await notify(phone, email, subject, msg)
     }
   }
 
@@ -87,29 +96,21 @@ async function handleTutor(from, confirmed) {
   return twiml(reply)
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Flujo B: Estudiante decide convertir a individual o cancelar (sesión solitaria)
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Flujo B: Estudiante decide en sesión solitaria ──────────────────────────
 async function handleEstudiante(from, toIndividual) {
-  // Find user by phone
   const allUsers = await getAuthUsers()
   const student  = allUsers.find(u => u.phone?.replace(/\D/g, '') === from)
   if (!student) return twiml('No encontramos tu cuenta. Escríbenos a soporte.')
 
   const nombre = student.user_metadata?.full_name || student.user_metadata?.name || student.email?.split('@')[0] || 'estudiante'
-
-  // Find their next enrolled session in lonely-pool state
   const now = new Date().toISOString()
-  const inscripciones = await db(
-    `inscripciones?select=sesion_id&estudiante_id=eq.${student.id}`
-  )
-  if (!Array.isArray(inscripciones) || inscripciones.length === 0) {
-    return twiml('No tienes sesiones activas.')
-  }
+
+  const inscripciones = await db(`inscripciones?select=sesion_id&estudiante_id=eq.${student.id}`)
+  if (!Array.isArray(inscripciones) || inscripciones.length === 0) return twiml('No tienes sesiones activas.')
 
   const ids = inscripciones.map(i => `"${i.sesion_id}"`).join(',')
   const sesiones = await db(
-    `sesiones?select=id,fecha_inicio,precio_individual,tutor_id,tutores(nombre,telefono),materias(nombre)&id=in.(${ids})&estado=in.(confirmada,esperando_cupos)&fecha_inicio=gte.${now}&order=fecha_inicio&limit=1`
+    `sesiones?select=id,fecha_inicio,precio_individual,tutor_id,tutores(nombre,telefono,email),materias(nombre)&id=in.(${ids})&estado=in.(confirmada,esperando_cupos)&fecha_inicio=gte.${now}&order=fecha_inicio&limit=1`
   )
   const sesion = Array.isArray(sesiones) ? sesiones[0] : null
   if (!sesion) return twiml('No encontramos una sesión activa pendiente de decisión.')
@@ -119,21 +120,18 @@ async function handleEstudiante(from, toIndividual) {
   const tutor   = sesion.tutores
 
   if (toIndividual) {
-    await dbPatch('sesiones', `id=eq.${sesion.id}`, {
-      tipo: 'individual',
-      max_estudiantes: 1,
-      estado: 'confirmada',
-    })
+    await dbPatch('sesiones', `id=eq.${sesion.id}`, { tipo: 'individual', max_estudiantes: 1, estado: 'confirmada' })
   } else {
     await dbPatch('sesiones', `id=eq.${sesion.id}`, { estado: 'cancelada' })
   }
 
-  // Notify tutor
-  if (tutor?.telefono) {
-    const tutorMsg = toIndividual
+  // Notificar tutor por WA + email
+  if (tutor) {
+    const msg = toIndividual
       ? `📌 *TutoPool — Sesión convertida a individual*\n\nHola ${tutor.nombre.split(' ')[0]}! El estudiante ${nombre} eligió convertir la sesión de *${materia}* del ${fecha} a *individual*. ¡Queda confirmada! 👍`
       : `❌ *TutoPool — Sesión cancelada por el estudiante*\n\nHola ${tutor.nombre.split(' ')[0]}, el estudiante ${nombre} canceló la sesión de *${materia}* del ${fecha}. Ya puedes liberar ese espacio.`
-    await sendWA(tutor.telefono, tutorMsg)
+    const subject = toIndividual ? `📌 Sesión convertida a individual — ${materia}` : `❌ Sesión cancelada por estudiante — ${materia}`
+    await notify(tutor.telefono, tutor.email, subject, msg)
   }
 
   const reply = toIndividual
@@ -142,9 +140,7 @@ async function handleEstudiante(from, toIndividual) {
   return twiml(reply)
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Handler principal
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Handler principal ────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'text/xml')
   if (req.method !== 'POST') return res.status(405).send('<Response></Response>')
@@ -153,21 +149,13 @@ export default async function handler(req, res) {
   const payload = String(req.body?.ButtonPayload || req.body?.Body || '').trim()
   const upper   = payload.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()
 
-  // Flujo B — respuesta del estudiante (sesión solitaria)
-  if (upper === 'INDIVIDUAL' || upper.includes('INDIVIDUAL')) {
-    return res.status(200).send(await handleEstudiante(from, true))
-  }
-  if (upper === 'CANCELAR_SESION' || upper.includes('CANCELAR SESION') || upper.includes('CANCELAR_SESION')) {
-    return res.status(200).send(await handleEstudiante(from, false))
-  }
+  if (upper === 'INDIVIDUAL' || upper.includes('INDIVIDUAL')) return res.status(200).send(await handleEstudiante(from, true))
+  if (upper === 'CANCELAR_SESION' || upper.includes('CANCELAR SESION') || upper.includes('CANCELAR_SESION')) return res.status(200).send(await handleEstudiante(from, false))
 
-  // Flujo A — respuesta del tutor (confirmación)
   const confirmed = upper === 'SI' || upper.startsWith('SI,') || upper.includes('CONFIRMO')
   const denied    = upper === 'NO' || upper.startsWith('NO,') || upper.includes('CANCELO')
 
-  if (confirmed || denied) {
-    return res.status(200).send(await handleTutor(from, confirmed))
-  }
+  if (confirmed || denied) return res.status(200).send(await handleTutor(from, confirmed))
 
   return res.status(200).send(twiml('No entendí tu respuesta. Por favor usa los botones del mensaje anterior.'))
 }

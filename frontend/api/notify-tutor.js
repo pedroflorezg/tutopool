@@ -1,6 +1,7 @@
 // Notifica al tutor cuando un estudiante crea una solicitud de tutoría.
-// Llamado desde el frontend (HTTPS → HTTPS), luego este endpoint llama a Twilio
-// server-side para evitar el bloqueo de mixed-content del navegador.
+// Envía WhatsApp + Email en paralelo.
+
+import { sendEmail, toHtml } from './_email.js'
 
 const SUPA_URL = process.env.SUPABASE_URL
 const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -12,13 +13,13 @@ async function db(path) {
 }
 
 async function sendWA(to, body) {
-  const sid   = process.env.TWILIO_ACCOUNT_SID
-  const token = process.env.TWILIO_AUTH_TOKEN
-  const from  = process.env.TWILIO_WA_FROM
-  const contentSid = process.env.TWILIO_CONTENT_SID  // template con botones SÍ/NO
+  const sid      = process.env.TWILIO_ACCOUNT_SID
+  const token    = process.env.TWILIO_AUTH_TOKEN
+  const from     = process.env.TWILIO_WA_FROM
+  const contentSid = process.env.TWILIO_CONTENT_SID
+  if (!sid || !token || !from) return null
 
   const number = `whatsapp:+${String(to).replace(/\D/g, '')}`
-
   const params = contentSid
     ? { From: from, To: number, ContentSid: contentSid, ContentVariables: JSON.stringify({ '1': body }) }
     : { From: from, To: number, Body: body }
@@ -40,41 +41,29 @@ export default async function handler(req, res) {
   const { materiaId, tutorId, estudiante, solicitud } = req.body || {}
   if (!materiaId) return res.status(400).json({ error: 'Falta materiaId' })
 
-  // Buscar tutor: si es específico cargarlo, si es aleatorio buscar uno activo para la materia
+  // Buscar tutor
   let tutor = null
   if (tutorId && tutorId !== 'aleatorio') {
-    const rows = await db(`tutores?select=id,nombre,telefono&id=eq.${tutorId}&limit=1`)
+    const rows = await db(`tutores?select=id,nombre,telefono,email&id=eq.${tutorId}&limit=1`)
     tutor = Array.isArray(rows) ? rows[0] : null
   }
-
   if (!tutor) {
-    // Tutor aleatorio: buscar via tutor_materias (join correcto en PostgREST)
-    const rows = await db(
-      `tutor_materias?select=tutores(id,nombre,telefono)&materia_id=eq.${materiaId}&limit=10`
-    )
+    const rows = await db(`tutor_materias?select=tutores(id,nombre,telefono,email)&materia_id=eq.${materiaId}&limit=10`)
     if (Array.isArray(rows) && rows.length > 0) {
-      // Filtrar los que tienen teléfono y están activos
-      const candidatos = rows.map(r => r.tutores).filter(t => t?.telefono)
-      if (candidatos.length > 0) {
-        // Elegir uno aleatoriamente
-        tutor = candidatos[Math.floor(Math.random() * candidatos.length)]
-      }
+      const candidatos = rows.map(r => r.tutores).filter(t => t?.telefono || t?.email)
+      if (candidatos.length > 0) tutor = candidatos[Math.floor(Math.random() * candidatos.length)]
     }
   }
 
-  if (!tutor?.telefono) {
-    // No hay tutor con teléfono disponible — guardamos la solicitud igualmente
-    return res.status(200).json({ ok: true, notified: false, reason: 'No hay tutor con teléfono disponible' })
-  }
+  if (!tutor) return res.status(200).json({ ok: true, notified: false, reason: 'No hay tutor disponible' })
 
-  // Obtener nombre de la materia
   const materias = await db(`materias?select=nombre&id=eq.${materiaId}&limit=1`)
   const materia  = Array.isArray(materias) ? materias[0]?.nombre : 'tu materia'
 
   const nombreEstudiante = estudiante?.nombre || estudiante?.email?.split('@')[0] || 'un estudiante'
-  const fecha  = solicitud?.fecha  || '(fecha por confirmar)'
-  const hora   = solicitud?.hora   || ''
-  const tipo   = solicitud?.tipo   === 'grupal' ? 'Grupal' : 'Individual'
+  const fecha   = solicitud?.fecha   || '(fecha por confirmar)'
+  const hora    = solicitud?.hora    || ''
+  const tipo    = solicitud?.tipo    === 'grupal' ? 'Grupal' : 'Individual'
   const formato = solicitud?.formato === 'virtual' ? 'Virtual' : 'Presencial'
 
   const msg = `📚 *Nueva solicitud de tutoría — TutoPool*\n\n` +
@@ -82,16 +71,18 @@ export default async function handler(req, res) {
     `• Materia: *${materia}*\n` +
     `• Fecha: ${fecha}${hora ? ' a las ' + hora : ''}\n` +
     `• Tipo: ${tipo} · ${formato}\n\n` +
-    `¿Puedes confirmar esta sesión?`
+    `Responde *SÍ* para confirmar o *NO* para cancelar.`
 
-  const result = await sendWA(tutor.telefono, msg)
+  const [waResult, emailResult] = await Promise.all([
+    tutor.telefono ? sendWA(tutor.telefono, msg) : Promise.resolve(null),
+    tutor.email    ? sendEmail(tutor.email, `📚 Nueva solicitud de tutoría — ${materia}`, toHtml(msg)) : Promise.resolve(null),
+  ])
 
   return res.status(200).json({
     ok: true,
     notified: true,
     tutor: tutor.nombre,
-    twilio_sid: result?.sid || null,
-    twilio_status: result?.status || null,
-    twilio_error: result?.message || result?.code || null,
+    whatsapp: waResult?.sid ? 'enviado' : (waResult?.message || 'no enviado'),
+    email: emailResult?.ok ? 'enviado' : (emailResult?.error || 'no enviado'),
   })
 }
