@@ -38,8 +38,8 @@ async function notifyStudent(sesion) {
   const from       = process.env.TWILIO_WA_FROM
   const contentSid = process.env.TWILIO_CONTENT_SID_ESTUDIANTE
 
-  if (!sid || !token || !from || !contentSid) {
-    throw new Error('Variables de Twilio no configuradas')
+  if (!sid || !token || !from) {
+    throw new Error('Variables de Twilio no configuradas (TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_WA_FROM)')
   }
 
   // Get enrolled students for this session
@@ -72,12 +72,13 @@ async function notifyStudent(sesion) {
 
     const msgBody = `⚠️ *TutoPool — Tu sesión necesita una decisión*\n\nHola *${nombre}*! La sesión grupal de *${materia}* del ${fecha} no alcanzó el mínimo de estudiantes y solo quedas tú.\n\n💰 Precio individual: *${precio}*\n\n¿Qué prefieres hacer?`
 
-    const params = {
-      From: from,
-      To: `whatsapp:+${phone}`,
-      ContentSid: contentSid,
-      ContentVariables: JSON.stringify({ '1': msgBody }),
-    }
+    const msgConOpciones = contentSid
+      ? msgBody
+      : `${msgBody}\n\nResponde *INDIVIDUAL* para convertirla o *CANCELAR* para cancelarla.`
+
+    const params = contentSid
+      ? { From: from, To: `whatsapp:+${phone}`, ContentSid: contentSid, ContentVariables: JSON.stringify({ '1': msgBody }) }
+      : { From: from, To: `whatsapp:+${phone}`, Body: msgConOpciones }
 
     const resp = await fetch(
       `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`,

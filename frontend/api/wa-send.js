@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     : {
         From: from,
         To: number,
-        Body: message,
+        Body: `${message}\n\nResponde *SÍ* para confirmar o *NO* para cancelar.`,
       }
 
   const resp = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
