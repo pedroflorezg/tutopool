@@ -2,7 +2,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useState, useEffect, useMemo } from 'react'
 import { supabase, isDemoMode, DEMO_MATERIAS, DEMO_TUTORES, calcPrecioGrupal } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { triggerTutorConfirmation } from '../lib/n8n'
+// n8n removed from student request flow — notifications now go through /api/notify-tutor
 
 const ALL_TIME_OPTIONS = []
 for (let h = 6; h <= 21; h++) {
@@ -100,13 +100,17 @@ export default function RequestTutoringPage() {
       } else {
         await new Promise(r => setTimeout(r, 1200))
       }
-      const tutorObj = form.tutorId === 'aleatorio'
-        ? { id: 'aleatorio', nombre: 'Aleatorio' }
-        : tutores.find(t => t.id === form.tutorId)
-      triggerTutorConfirmation(
-        { id: null, materia_id: materiaId, fecha_preferida: form.fecha, hora_preferida: form.hora, formato: form.formato, tipo: form.tipo, duracion: form.duracion },
-        user, tutorObj
-      )
+      // Notificar al tutor via WhatsApp (server-side para evitar mixed-content)
+      fetch('/api/notify-tutor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          materiaId,
+          tutorId: form.tutorId === 'aleatorio' ? null : form.tutorId,
+          estudiante: { nombre: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email, email: user.email },
+          solicitud: { fecha: form.fecha, hora: form.hora, tipo: form.tipo, formato: form.formato },
+        }),
+      }).catch(() => {}) // No bloqueamos el flujo si la notificación falla
       setSubmitted(true)
     } catch (err) {
       setError(err.message || 'Ocurrió un error al enviar tu solicitud. Intenta de nuevo.')
