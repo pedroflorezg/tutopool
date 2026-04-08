@@ -41,17 +41,17 @@ export default async function handler(req, res) {
   if (!materiaId) return res.status(400).json({ error: 'Falta materiaId' })
 
   // Buscar tutor
+  const PEDRO_TUTOR_ID = '0a4a8eb8-74f9-4685-9e21-72fc7cc2dc2d'
+
   let tutor = null
   if (tutorId && tutorId !== 'aleatorio') {
     const rows = await db(`tutores?select=id,nombre,telefono,email&id=eq.${tutorId}&limit=1`)
     tutor = Array.isArray(rows) ? rows[0] : null
   }
   if (!tutor) {
-    const rows = await db(`tutor_materias?select=tutores(id,nombre,telefono,email)&materia_id=eq.${materiaId}&limit=10`)
-    if (Array.isArray(rows) && rows.length > 0) {
-      const candidatos = rows.map(r => r.tutores).filter(t => t?.telefono || t?.email)
-      if (candidatos.length > 0) tutor = candidatos[Math.floor(Math.random() * candidatos.length)]
-    }
+    // Tutor aleatorio → siempre asigna a Pedro Florez
+    const rows = await db(`tutores?select=id,nombre,telefono,email&id=eq.${PEDRO_TUTOR_ID}&limit=1`)
+    tutor = Array.isArray(rows) ? rows[0] : null
   }
 
   if (!tutor) return res.status(200).json({ ok: true, notified: false, reason: 'No hay tutor disponible' })
