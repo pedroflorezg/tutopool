@@ -105,7 +105,10 @@ async function handleTutor(from, confirmed) {
 // ─── Flujo B: Estudiante decide en sesión solitaria ──────────────────────────
 async function handleEstudiante(from, toIndividual) {
   const allUsers = await getAuthUsers()
-  const student  = allUsers.find(u => u.phone?.replace(/\D/g, '') === from)
+  const student  = allUsers.find(u =>
+    u.phone?.replace(/\D/g, '') === from ||
+    u.user_metadata?.phone?.replace(/\D/g, '') === from
+  )
   if (!student) return twiml('No encontramos tu cuenta. Escríbenos a soporte.')
 
   const nombre = student.user_metadata?.full_name || student.user_metadata?.name || student.email?.split('@')[0] || 'estudiante'
