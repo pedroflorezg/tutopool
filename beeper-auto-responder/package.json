@@ -1,0 +1,29 @@
+{
+  "name": "beeper-auto-responder",
+  "version": "1.0.0",
+  "description": "Automated Beeper message responder powered by Claude AI — auto-replies based on context and sends personalized re-engagement messages",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "dev:once": "tsx src/index.ts"
+  },
+  "keywords": ["beeper", "matrix", "auto-responder", "claude", "ai"],
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "matrix-js-sdk": "^34.0.0",
+    "better-sqlite3": "^11.7.0",
+    "node-cron": "^3.0.3",
+    "dotenv": "^16.4.7",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.0",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
