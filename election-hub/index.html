@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Elections — Analysis Hub</title>
+<style>
+  :root{
+    --bg:#0b0e13; --panel:#161b23; --panel2:#1c2230; --line:#28303d;
+    --ink:#eaf0f7; --muted:#8a96a8; --faint:#586271;
+    --esp:#e2574c; --cep:#f2b134; --up:#37c98b; --down:#ef5b5b; --accent:#6aa3ff;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#13202e 0%,var(--bg) 60%);
+    color:var(--ink);font-family:var(--sans);line-height:1.5;min-height:100vh}
+  .wrap{max-width:1000px;margin:0 auto;padding:64px 22px 80px}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 10px}
+  h1{font-size:34px;margin:0 0 8px;letter-spacing:-.025em}
+  .lede{font-size:15px;color:var(--muted);max-width:620px;margin:0 0 36px}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  a.card{display:block;text-decoration:none;color:inherit;background:var(--panel);
+    border:1px solid var(--line);border-radius:18px;padding:24px 24px 22px;
+    transition:transform .12s ease,border-color .12s ease,background .12s ease}
+  a.card:hover{transform:translateY(-3px);border-color:#3a4658;background:var(--panel2)}
+  .ctag{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.08em;text-transform:uppercase}
+  .ctitle{font-size:20px;font-weight:650;margin:6px 0 4px;letter-spacing:-.01em}
+  .cdesc{font-size:13.5px;color:var(--muted);margin-bottom:18px}
+  .stat{display:flex;align-items:baseline;gap:10px;margin-top:14px}
+  .stat .big{font-family:var(--mono);font-size:30px;font-weight:700;letter-spacing:-.02em}
+  .stat .lbl{font-size:12px;color:var(--muted)}
+  .mini{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:12px;
+    border-top:1px solid var(--line);padding-top:12px}
+  .mini .up{color:var(--up)} .mini .down{color:var(--down)}
+  .go{display:inline-flex;align-items:center;gap:7px;margin-top:20px;font-size:13px;
+    font-weight:600;color:var(--accent)}
+  .go .arr{transition:transform .12s ease} a.card:hover .go .arr{transform:translateX(4px)}
+  .esp{color:var(--esp)} .cep{color:var(--cep)}
+  footer{margin-top:40px;font-size:12px;color:var(--faint)}
+  footer a{color:var(--accent);text-decoration:none}
+  @media(max-width:680px){.cards{grid-template-columns:1fr}h1{font-size:27px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">Election Analytics</p>
+  <h1>Elections — Analysis Hub</h1>
+  <p class="lede">Two self-contained tools built on past-election data, polls, and live
+    Polymarket prices: a focused forecast for Colombia's 2026 runoff, and a global
+    tracker for where public sentiment is moving across election markets.</p>
+
+  <div class="cards">
+    <a class="card" href="../colombia-election-2026/dashboard/index.html">
+      <div class="ctag">Forecast · 21 Jun 2026</div>
+      <div class="ctitle">Colombia 2026 — Runoff Forecast</div>
+      <div class="cdesc">Weighted-blend ensemble of polls, first-round vote transfer, and
+        Polymarket odds, with a live election-night projection by region and a
+        three-line margin-of-error band.</div>
+      <div class="stat" id="coStat">
+        <span class="big" id="coWin">—</span>
+        <span class="lbl" id="coWinLbl">loading…</span>
+      </div>
+      <div class="mini" id="coMini"></div>
+      <span class="go">Open forecast <span class="arr">→</span></span>
+    </a>
+
+    <a class="card" href="../polymarket-election-trends/dashboard/index.html">
+      <div class="ctag">Live · global</div>
+      <div class="ctitle">Election Sentiment Tracker</div>
+      <div class="cdesc">Discovers active election races across Polymarket and ranks the
+        biggest sentiment shifts over the last week (and the last 24 hours, sampled
+        more frequently).</div>
+      <div class="stat" id="pmStat">
+        <span class="big" id="pmCount">—</span>
+        <span class="lbl">election markets tracked</span>
+      </div>
+      <div class="mini" id="pmMini"></div>
+      <span class="go">Open tracker <span class="arr">→</span></span>
+    </a>
+  </div>
+
+  <footer id="foot">Data: Polymarket Gamma &amp; CLOB APIs, public polls, Registraduría
+    Nacional. Forecasts, not official results.</footer>
+</div>
+
+<!-- Load each module's generated data so the hub shows live headline stats. -->
+<script src="../colombia-election-2026/dashboard/forecast.js" onerror="window.__noCO=1"></script>
+<script src="../polymarket-election-trends/dashboard/trends.js" onerror="window.__noPM=1"></script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  // Colombia forecast headline
+  const F=window.FORECAST;
+  if(F){
+    const f=F.forecast;
+    $("coWin").textContent=(f.p_espriella_win*100).toFixed(0)+"%";
+    $("coWin").className="big esp";
+    $("coWinLbl").textContent="de la Espriella to win";
+    $("coMini").innerHTML="2-way: <span class='esp'>"+f.espriella_two_way_median+
+      "%</span> · <span class='cep'>"+f.cepeda_two_way_median+"%</span> · margin "+
+      (f.margin_points_median>0?"+":"")+f.margin_points_median+" pts"+
+      (F.live?" · LIVE "+(F.live.national_reported_pct*100).toFixed(0)+"% reported":"");
+  } else { $("coWinLbl").textContent="open the dashboard"; }
+
+  // Polymarket tracker headline
+  const T=window.TRENDS;
+  if(T){
+    $("pmCount").textContent=T.n_markets;
+    const top=T.movers_7d&&T.movers_7d[0];
+    if(top){
+      const cls=top.d7d>0?"up":"down", arr=top.d7d>0?"▲ +":"▼ ";
+      $("pmMini").innerHTML="Top 7d mover: <b>"+top.candidate+"</b> <span class='"+cls+"'>"+
+        arr+top.d7d.toFixed(1)+" pts</span> ("+top.event+")";
+    }
+  } else { $("pmCount").textContent="—"; }
+})();
+</script>
+</body>
+</html>
