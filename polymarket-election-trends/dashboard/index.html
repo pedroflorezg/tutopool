@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Election Sentiment Tracker · Polymarket Trends</title>
+<style>
+  :root{
+    --bg:#0c0f14; --panel:#161b23; --panel2:#1c2230; --line:#28303d;
+    --ink:#eaf0f7; --muted:#8a96a8; --faint:#586271;
+    --up:#37c98b; --down:#ef5b5b; --flat:#8a96a8; --accent:#6aa3ff;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5}
+  .wrap{max-width:1140px;margin:0 auto;padding:30px 22px 80px}
+  header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;
+    flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:16px}
+  h1{font-size:24px;margin:0;letter-spacing:-.02em}
+  h1 small{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-top:4px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap}
+  .badge{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);
+    border-radius:999px;padding:5px 11px;white-space:nowrap}
+  section{margin-top:30px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);
+    margin:0 0 6px;font-weight:600}
+  .h2row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .toggle{display:flex;gap:6px}
+  .toggle button{font:inherit;font-size:12px;color:var(--muted);background:var(--panel);
+    border:1px solid var(--line);border-radius:8px;padding:5px 12px;cursor:pointer}
+  .toggle button.on{color:#fff;background:var(--panel2);border-color:#3a4658}
+  .movers{display:flex;flex-direction:column;gap:8px}
+  .row{display:grid;grid-template-columns:30px 1fr 130px 96px 92px;gap:12px;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 15px}
+  .rank{font-family:var(--mono);color:var(--faint);font-size:13px;text-align:center}
+  .who .cand{font-size:14px;font-weight:600;line-height:1.2}
+  .who .ev{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .spark{width:130px;height:34px}
+  .price{text-align:right;font-family:var(--mono);font-size:17px}
+  .price small{display:block;font-size:10px;color:var(--faint);font-weight:400}
+  .delta{text-align:right;font-family:var(--mono);font-size:14px;font-weight:600}
+  .delta small{display:block;font-size:10px;color:var(--faint);font-weight:400}
+  .up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--flat)}
+  .pilldir{font-size:10px;font-family:var(--mono);padding:1px 7px;border-radius:999px;
+    text-transform:uppercase;letter-spacing:.04em}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .card .ttl{font-size:14px;font-weight:600;margin-bottom:2px}
+  .card .meta{font-size:11.5px;color:var(--muted);margin-bottom:12px}
+  .kv{display:flex;justify-content:space-between;font-size:13px;margin:6px 0;align-items:baseline}
+  .kv .lab{color:var(--muted)} .kv .v{font-family:var(--mono)}
+  .movebar{height:6px;border-radius:4px;background:#0a0d12;overflow:hidden;margin-top:10px}
+  .movebar i{display:block;height:100%;background:var(--accent)}
+  footer{margin-top:42px;border-top:1px solid var(--line);padding-top:16px;font-size:12px;color:var(--faint)}
+  a{color:var(--accent);text-decoration:none}
+  @media(max-width:680px){.row{grid-template-columns:24px 1fr 80px;grid-row-gap:6px}
+    .spark{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Election Sentiment Tracker
+      <small>where public sentiment is moving across Polymarket election markets</small></h1>
+    <div class="badges">
+      <span class="badge" id="countBadge">…</span>
+      <span class="badge" id="stampBadge"></span>
+      <span class="badge" id="refreshBadge"></span>
+    </div>
+  </header>
+
+  <section>
+    <div class="h2row">
+      <h2>Biggest sentiment movers</h2>
+      <div class="toggle">
+        <button id="t7" class="on">7-day shift</button>
+        <button id="t24">24-hour shift</button>
+      </div>
+    </div>
+    <div class="movers" id="movers"></div>
+  </section>
+
+  <section>
+    <h2>Most-active races (total 7-day movement)</h2>
+    <div class="grid" id="events"></div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script src="trends.js"></script>
+<script>
+const T = window.TRENDS;
+const $ = id => document.getElementById(id);
+const dirColor = d => d==="surging"||d==="rising" ? "var(--up)"
+                    : d==="falling"||d==="collapsing" ? "var(--down)" : "var(--flat)";
+const dirBg = {surging:"#123a2b",rising:"#123a2b",falling:"#3a1717",collapsing:"#3a1717",stable:"#222b38"};
+const cls = d => d>0.5?"up":(d<-0.5?"down":"flat");
+const fmtMoney = n => n>=1e6?("$"+(n/1e6).toFixed(1)+"M") : n>=1e3?("$"+(n/1e3).toFixed(0)+"k") : ("$"+Math.round(n));
+
+function sparkline(vals, color){
+  const W=130,H=34,pad=3;
+  if(!vals||vals.length<2) return "";
+  const lo=Math.min(...vals), hi=Math.max(...vals), span=(hi-lo)||1;
+  const X=i=>pad+(i/(vals.length-1))*(W-2*pad);
+  const Y=v=>H-pad-((v-lo)/span)*(H-2*pad);
+  const d=vals.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)).join(" ");
+  const area=d+` L${X(vals.length-1).toFixed(1)} ${H-pad} L${X(0).toFixed(1)} ${H-pad} Z`;
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}">
+    <path d="${area}" fill="${color}" opacity="0.12"/>
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="1.8"/>
+    <circle cx="${X(vals.length-1).toFixed(1)}" cy="${Y(vals[vals.length-1]).toFixed(1)}" r="2.6" fill="${color}"/>
+  </svg>`;
+}
+
+function fmtStamp(iso){ const d=new Date(iso); return isNaN(d)?iso:
+  d.toLocaleString(undefined,{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"short"}); }
+
+let mode="7d";
+function renderMovers(){
+  const data = mode==="7d" ? T.movers_7d : T.movers_24h;
+  const key = mode==="7d" ? "d7d" : "d24h";
+  const host=$("movers"); host.innerHTML="";
+  data.forEach((r,i)=>{
+    const dv=r[key], c=cls(dv), color=dirColor(r.direction);
+    const series = mode==="24h" ? (r.spark24h||r.spark) : r.spark;
+    const div=document.createElement("div"); div.className="row";
+    div.innerHTML=
+      `<div class="rank">${i+1}</div>`+
+      `<div class="who"><div class="cand">${r.candidate}</div>`+
+        `<div class="ev">${r.event} · vol ${fmtMoney(r.volume)} `+
+        `<span class="pilldir" style="background:${dirBg[r.direction]};color:${color}">${r.direction}</span></div></div>`+
+      sparkline(series,color)+
+      `<div class="price">${r.price_pct}%<small>implied prob</small></div>`+
+      `<div class="delta ${c}">${dv>0?"▲ +":dv<0?"▼ ":""}${dv.toFixed(1)}<small>${mode} pts</small></div>`;
+    host.appendChild(div);
+  });
+  $("t7").classList.toggle("on",mode==="7d");
+  $("t24").classList.toggle("on",mode==="24h");
+}
+
+function renderEvents(){
+  const host=$("events"); host.innerHTML="";
+  const maxMove=Math.max(...T.events.map(e=>e.abs_move_7d),1);
+  T.events.slice(0,18).forEach(e=>{
+    const r=e.top_riser, f=e.top_faller;
+    const div=document.createElement("div"); div.className="card";
+    div.innerHTML=
+      `<div class="ttl">${e.event}</div>`+
+      `<div class="meta">${e.n_markets} markets tracked</div>`+
+      `<div class="kv"><span class="lab">Front-runner</span>`+
+        `<span class="v">${e.leader.candidate} · ${e.leader.price_pct}%</span></div>`+
+      `<div class="kv"><span class="lab">Rising</span>`+
+        `<span class="v up">▲ ${r.candidate} +${r.d7d.toFixed(1)}</span></div>`+
+      `<div class="kv"><span class="lab">Falling</span>`+
+        `<span class="v down">▼ ${f.candidate} ${f.d7d.toFixed(1)}</span></div>`+
+      `<div class="movebar"><i style="width:${(e.abs_move_7d/maxMove*100).toFixed(0)}%"></i></div>`+
+      `<div class="meta" style="margin-top:6px">total 7d movement: ${e.abs_move_7d} pts</div>`;
+    host.appendChild(div);
+  });
+}
+
+function setupAutoRefresh(){
+  const secs=(T&&T.refresh_secs)||300; let left=secs;
+  const b=$("refreshBadge");
+  const tick=()=>{ b.textContent="↻ "+String(Math.floor(left/60)).padStart(2,"0")+":"+
+    String(left%60).padStart(2,"0"); if(left--<=0) location.reload(); };
+  tick(); setInterval(tick,1000);
+}
+
+$("countBadge").textContent = T.n_markets+" markets · "+T.n_events+" races";
+$("stampBadge").textContent = "updated "+fmtStamp(T.generated_at);
+$("foot").innerHTML = "Source: <a href='https://gamma-api.polymarket.com'>Polymarket Gamma API</a> "+
+  "(market discovery) and <a href='https://clob.polymarket.com'>CLOB price-history</a>. "+
+  "Window: last 7 days (hourly); the 24-hour view uses a denser ~10-minute series. "+
+  "The Yes price is the market-implied probability — sentiment = traded money, not a poll. "+
+  "Auto-refreshes on a fixed interval.";
+$("t7").onclick=()=>{mode="7d";renderMovers();};
+$("t24").onclick=()=>{mode="24h";renderMovers();};
+renderMovers(); renderEvents(); setupAutoRefresh();
+</script>
+</body>
+</html>
