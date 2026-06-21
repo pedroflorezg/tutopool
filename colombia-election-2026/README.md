@@ -63,9 +63,29 @@ python3 run.py --live --simulate 0.45      # ~45% of tables reported
 
 # 3) Real official feed (when the Registraduría endpoint is known)
 python3 run.py --live --endpoint "https://<host>/<path>/{dept}.json"
+
+# 4) Auto-refresh every 5 minutes (election-night mode)
+python3 run.py --live --watch 300                       # real feed once configured
+python3 run.py --live --simulate 0.3 --watch 300        # demo: ramps the count each tick
 ```
 
 Then open `dashboard/index.html` in a browser.
+
+## Auto-refresh (every 5 minutes)
+
+Two halves, both on a 5-minute cadence:
+
+- **Backend** — `run.py --watch 300` re-pulls Polymarket + the count and
+  rewrites `forecast.{json,js}` every 300s until Ctrl-C. In `--simulate` mode it
+  also ramps the reported fraction each tick so the demo visibly progresses
+  toward 100% counted.
+- **Frontend** — the dashboard reloads itself on `refresh_secs` (default 300),
+  showing a live `↻ mm:ss` countdown and the data timestamp. A full reload
+  re-reads `forecast.js` from disk, so it works from `file://` and from a server.
+
+Leave the watcher running and the open dashboard updates hands-free. To change
+the interval, pass a different `--watch` value (the page picks it up from
+`refresh_secs` on the next reload).
 
 ## Plugging in the real official count
 

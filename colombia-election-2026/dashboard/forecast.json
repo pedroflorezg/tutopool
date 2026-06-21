@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21",
+  "generated_at": "2026-06-21T17:50:42+00:00",
   "runoff_date": "2026-06-21",
   "candidates": {
     "espriella": {
@@ -172,53 +172,53 @@
     },
     "market": {
       "name": "Polymarket-implied",
-      "mu": 0.5282399655890395,
+      "mu": 0.5271006998257953,
       "sd": 0.03,
-      "p_win_input": 0.835,
-      "p_win_normalized": 0.8267326732673267,
-      "mu_pct": 52.82,
+      "p_win_input": 0.825,
+      "p_win_normalized": 0.8168316831683168,
+      "mu_pct": 52.71,
       "sd_pct": 3.0
     }
   },
   "forecast": {
-    "p_espriella_win": 0.8954,
-    "p_cepeda_win": 0.1046,
-    "espriella_two_way_median": 53.25,
-    "cepeda_two_way_median": 46.75,
-    "margin_points_median": 6.51,
+    "p_espriella_win": 0.8931,
+    "p_cepeda_win": 0.1069,
+    "espriella_two_way_median": 53.22,
+    "cepeda_two_way_median": 46.78,
+    "margin_points_median": 6.44,
     "lines": {
       "pro_cepeda": {
-        "espriella_two_way": 50.58,
-        "cepeda_two_way": 49.42,
-        "margin_points": 1.16,
+        "espriella_two_way": 50.54,
+        "cepeda_two_way": 49.46,
+        "margin_points": 1.09,
         "leader": "espriella"
       },
       "neutral": {
-        "espriella_two_way": 53.25,
-        "cepeda_two_way": 46.75,
-        "margin_points": 6.51,
+        "espriella_two_way": 53.22,
+        "cepeda_two_way": 46.78,
+        "margin_points": 6.44,
         "leader": "espriella"
       },
       "pro_abelardo": {
-        "espriella_two_way": 55.95,
-        "cepeda_two_way": 44.05,
-        "margin_points": 11.91,
+        "espriella_two_way": 55.92,
+        "cepeda_two_way": 44.08,
+        "margin_points": 11.84,
         "leader": "espriella"
       }
     },
     "ci80": [
-      49.93,
-      56.58
+      49.9,
+      56.55
     ],
     "ci95": [
-      48.21,
-      58.36
+      48.18,
+      58.32
     ],
     "margin_buckets": {
-      "Cepeda wins": 0.1046,
-      "Espriella 0-5": 0.2814,
-      "Espriella 5-10": 0.3626,
-      "Espriella 10+": 0.2514
+      "Cepeda wins": 0.1069,
+      "Espriella 0-5": 0.2839,
+      "Espriella 5-10": 0.3617,
+      "Espriella 10+": 0.2476
     }
   },
   "first_round": {
@@ -445,25 +445,25 @@
   },
   "polymarket": {
     "source": "Polymarket (live Gamma API)",
-    "captured": "2026-06-21T17:38:19.060567+00:00",
+    "captured": "2026-06-21T17:50:24.458997+00:00",
     "event": "Colombia Presidential Election",
     "slug": "colombia-presidential-election",
-    "volume": 39816122.40433402,
+    "volume": 39819356.44697902,
     "winner_market": {
-      "espriella": 0.835,
-      "cepeda": 0.175,
-      "espriella_normalized": 0.8267,
-      "cepeda_normalized": 0.1733,
+      "espriella": 0.825,
+      "cepeda": 0.185,
+      "espriella_normalized": 0.8168,
+      "cepeda_normalized": 0.1832,
       "note": "Live Yes prices from Gamma API; *_normalized renormalize to the two-way runoff."
     },
     "raw": {
       "espriella": {
         "question": "Will Abelardo de la Espriella  win the 2026 Colombian presidential election?",
-        "prob": 0.835
+        "prob": 0.825
       },
       "cepeda": {
         "question": "Will Ivan Cepeda Castro win the 2026 Colombian presidential election?",
-        "prob": 0.175
+        "prob": 0.185
       }
     },
     "margin_market": {

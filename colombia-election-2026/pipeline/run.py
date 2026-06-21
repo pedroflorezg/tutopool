@@ -11,6 +11,7 @@ Usage:
     python pipeline/run.py --live               # refresh Polymarket + project live count
     python pipeline/run.py --live --simulate 0.45   # demo live night at ~45% reported
     python pipeline/run.py --endpoint "https://host/{dept}.json"   # real official feed
+    python pipeline/run.py --live --watch 300       # auto-refresh every 5 minutes
 """
 
 from __future__ import annotations
@@ -19,6 +20,8 @@ import argparse
 import json
 import subprocess
 import sys
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 from model import build_forecast
@@ -32,28 +35,23 @@ def _run(script: str, *args: str) -> None:
     subprocess.run([sys.executable, str(HERE / script), *args], check=False)
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--live", action="store_true",
-                    help="refresh live Polymarket odds and ingest the live count")
-    ap.add_argument("--simulate", type=float, default=None,
-                    help="simulate the official count at this national fraction reported (0-1)")
-    ap.add_argument("--endpoint", default=None,
-                    help="real Registraduría department results URL template (uses {dept})")
-    args = ap.parse_args()
-
-    if args.live:
+def build_once(live: bool, simulate: float | None, endpoint: str | None,
+               refresh_secs: int | None = None) -> dict:
+    if live:
         _run("fetch_polymarket.py", "--keep-margin")
         reg_args = []
-        if args.endpoint:
-            reg_args += ["--endpoint", args.endpoint]
-        if args.simulate is not None:
-            reg_args += ["--simulate", str(args.simulate)]
+        if endpoint:
+            reg_args += ["--endpoint", endpoint]
+        if simulate is not None:
+            reg_args += ["--simulate", str(simulate)]
         _run("fetch_registraduria.py", *reg_args)
 
     forecast = build_forecast()
+    # Full timestamp so the dashboard can show data freshness on each refresh.
+    forecast["generated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    if refresh_secs:
+        forecast["refresh_secs"] = refresh_secs
 
-    # Merge live regional projection if a partial count is available.
     live_path = HERE.parent / "data" / "live_results.json"
     if live_path.exists():
         forecast_left = forecast["forecast"]["cepeda_two_way_median"] / 100.0
@@ -64,9 +62,12 @@ def main() -> None:
     (DASH / "forecast.js").write_text(
         "window.FORECAST = " + json.dumps(forecast, ensure_ascii=False) + ";",
         encoding="utf-8")
+    return forecast
 
+
+def report(forecast: dict) -> None:
     f = forecast["forecast"]
-    print("\nColombia 2026 runoff forecast")
+    print(f"\n[{forecast['generated_at']}] Colombia 2026 runoff forecast")
     print("-" * 44)
     print(f"P(de la Espriella wins): {f['p_espriella_win']*100:5.1f}%")
     print(f"P(Cepeda wins):          {f['p_cepeda_win']*100:5.1f}%")
@@ -82,6 +83,37 @@ def main() -> None:
               f"-> leader: {lv['projected_leader'].upper()}")
     print("-" * 44)
     print("Artifacts written to dashboard/forecast.json and forecast.js")
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--live", action="store_true",
+                    help="refresh live Polymarket odds and ingest the live count")
+    ap.add_argument("--simulate", type=float, default=None,
+                    help="simulate the official count at this national fraction reported (0-1)")
+    ap.add_argument("--endpoint", default=None,
+                    help="real Registraduría department results URL template (uses {dept})")
+    ap.add_argument("--watch", type=int, default=None, metavar="SECONDS",
+                    help="re-run on this interval (e.g. 300 = every 5 minutes) until Ctrl-C")
+    args = ap.parse_args()
+
+    if not args.watch:
+        report(build_once(args.live, args.simulate, args.endpoint))
+        return
+
+    # Auto-refresh loop. In simulate mode, ramp the reported fraction each tick
+    # so the demo visibly progresses toward 100% counted.
+    sim = args.simulate
+    print(f"Watching: refreshing every {args.watch}s (Ctrl-C to stop)")
+    while True:
+        report(build_once(args.live, sim, args.endpoint, refresh_secs=args.watch))
+        if sim is not None:
+            sim = min(0.995, sim + 0.05)
+        try:
+            time.sleep(args.watch)
+        except KeyboardInterrupt:
+            print("\nStopped.")
+            break
 
 
 if __name__ == "__main__":

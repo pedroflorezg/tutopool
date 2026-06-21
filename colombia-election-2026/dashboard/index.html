@@ -82,6 +82,7 @@
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <span class="badge" id="modeBadge">cargando…</span>
       <span class="badge" id="stampBadge"></span>
+      <span class="badge" id="refreshBadge" title="auto-actualización"></span>
     </div>
   </header>
 
@@ -189,12 +190,33 @@ const pct = x => (x).toFixed(1) + "%";
 const $ = id => document.getElementById(id);
 
 function fmtInt(n){ return (n||0).toLocaleString("es-CO"); }
+function fmtStamp(iso){
+  if(!iso) return "—";
+  const d=new Date(iso); if(isNaN(d)) return iso;
+  return d.toLocaleString("es-CO",{hour:"2-digit",minute:"2-digit",second:"2-digit",
+    day:"2-digit",month:"short"});
+}
+
+// Auto-refresh: reload the page on F.refresh_secs (full reload re-reads
+// forecast.js from disk, so it works from file:// and from a server).
+function setupAutoRefresh(){
+  const secs = (window.FORECAST && window.FORECAST.refresh_secs) || 300;
+  let left = secs;
+  const badge = $("refreshBadge");
+  const tick = () => {
+    const m = String(Math.floor(left/60)).padStart(2,"0");
+    const s = String(left%60).padStart(2,"0");
+    badge.textContent = "↻ " + m + ":" + s;
+    if(left-- <= 0){ location.reload(); }
+  };
+  tick(); setInterval(tick, 1000);
+}
 
 function renderHeadline(){
   const f = F.forecast;
   $("modeBadge").textContent = F.live ? "CONTEO EN VIVO" : "PRONÓSTICO PRE-ELECTORAL";
   if(F.live) $("modeBadge").classList.add("live");
-  $("stampBadge").textContent = "actualizado " + (F.generated_at||"");
+  $("stampBadge").textContent = "actualizado " + fmtStamp(F.generated_at);
   $("espWin").textContent = pct(f.p_espriella_win*100);
   $("cepWin").textContent = pct(f.p_cepeda_win*100);
   $("espShare").textContent = "voto 2 vías ~ " + pct(f.espriella_two_way_median);
@@ -319,6 +341,7 @@ renderTrend();
 renderTransfers();
 renderLive();
 renderMethodology();
+setupAutoRefresh();
 </script>
 </body>
 </html>
