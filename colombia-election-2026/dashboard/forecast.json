@@ -1,0 +1,595 @@
+{
+  "generated_at": "2026-06-21T21:21:05+00:00",
+  "runoff_date": "2026-06-21",
+  "candidates": {
+    "espriella": {
+      "name": "Abelardo de la Espriella",
+      "bloc": "right",
+      "color": "#c0392b"
+    },
+    "cepeda": {
+      "name": "Iván Cepeda",
+      "bloc": "left (Pacto Histórico)",
+      "color": "#e67e22"
+    }
+  },
+  "weights": {
+    "polls": 0.45,
+    "fundamentals": 0.25,
+    "market": 0.3
+  },
+  "signals": {
+    "polls": {
+      "name": "Recency-weighted polls",
+      "mu": 0.5326166426077619,
+      "sd": 0.029877205634337142,
+      "n_polls": 9,
+      "detail": [
+        {
+          "pollster": "Encuesta (consolidado prensa)",
+          "date_end": "2026-06-19",
+          "two_way": 0.5389,
+          "weight": 0.2125,
+          "days_before": 2
+        },
+        {
+          "pollster": "CNC",
+          "date_end": "2026-06-13",
+          "two_way": 0.5209,
+          "weight": 0.2852,
+          "days_before": 8
+        },
+        {
+          "pollster": "Celag Data",
+          "date_end": "2026-06-12",
+          "two_way": 0.4932,
+          "weight": 0.0947,
+          "days_before": 9
+        },
+        {
+          "pollster": "AtlasIntel / Semana",
+          "date_end": "2026-06-11",
+          "two_way": 0.5413,
+          "weight": 0.2715,
+          "days_before": 10
+        },
+        {
+          "pollster": "Guarumo / Ecoanalítica",
+          "date_end": "2026-06-11",
+          "two_way": 0.5389,
+          "weight": 0.1733,
+          "days_before": 10
+        },
+        {
+          "pollster": "AtlasIntel / Semana",
+          "date_end": "2026-06-10",
+          "two_way": 0.5398,
+          "weight": 0.2244,
+          "days_before": 11
+        },
+        {
+          "pollster": "AtlasIntel / Semana",
+          "date_end": "2026-06-02",
+          "two_way": 0.5414,
+          "weight": 0.0695,
+          "days_before": 19
+        },
+        {
+          "pollster": "CNC (pre-1ra vuelta proj.)",
+          "date_end": "2026-05-22",
+          "two_way": 0.516,
+          "weight": 0.0079,
+          "days_before": 30
+        },
+        {
+          "pollster": "AtlasIntel / Semana (pre-1ra)",
+          "date_end": "2026-05-21",
+          "two_way": 0.5476,
+          "weight": 0.0119,
+          "days_before": 31
+        }
+      ],
+      "mu_pct": 53.26,
+      "sd_pct": 2.99
+    },
+    "fundamentals": {
+      "name": "First-round + vote transfer",
+      "mu": 0.5377574663133712,
+      "sd": 0.015,
+      "point_two_way": 0.5377643033314665,
+      "projected_espriella_votes": 11882178,
+      "projected_cepeda_votes": 10213335,
+      "transfers": [
+        {
+          "name": "Paloma Valencia",
+          "votes": 1639685,
+          "to_espriella": 0.76,
+          "to_cepeda": 0.1
+        },
+        {
+          "name": "Sergio Fajardo",
+          "votes": 1009073,
+          "to_espriella": 0.34,
+          "to_cepeda": 0.41
+        },
+        {
+          "name": "Claudia López",
+          "votes": 225517,
+          "to_espriella": 0.15,
+          "to_cepeda": 0.7
+        },
+        {
+          "name": "Santiago Botero Jaramillo",
+          "votes": 206140,
+          "to_espriella": 0.7,
+          "to_cepeda": 0.12
+        },
+        {
+          "name": "Mauricio Lizcano",
+          "votes": 53839,
+          "to_espriella": 0.45,
+          "to_cepeda": 0.35
+        },
+        {
+          "name": "Miguel Uribe Londoño",
+          "votes": 28657,
+          "to_espriella": 0.78,
+          "to_cepeda": 0.07
+        },
+        {
+          "name": "Sondra Macollins Garvin",
+          "votes": 19889,
+          "to_espriella": 0.4,
+          "to_cepeda": 0.4
+        },
+        {
+          "name": "Roy Barreras",
+          "votes": 14108,
+          "to_espriella": 0.15,
+          "to_cepeda": 0.65
+        },
+        {
+          "name": "Luis Gilberto Murillo",
+          "votes": 13270,
+          "to_espriella": 0.3,
+          "to_cepeda": 0.45
+        },
+        {
+          "name": "Carlos Caicedo",
+          "votes": 12694,
+          "to_espriella": 0.1,
+          "to_cepeda": 0.72
+        },
+        {
+          "name": "Gustavo Matamoros Camacho",
+          "votes": 5627,
+          "to_espriella": 0.4,
+          "to_cepeda": 0.4
+        }
+      ],
+      "mu_pct": 53.78,
+      "sd_pct": 1.5
+    },
+    "market": {
+      "name": "Polymarket-implied",
+      "mu": 0.5286249575943858,
+      "sd": 0.03,
+      "p_win_input": 0.83,
+      "p_win_normalized": 0.83,
+      "mu_pct": 52.86,
+      "sd_pct": 3.0
+    }
+  },
+  "forecast": {
+    "p_espriella_win": 0.8962,
+    "p_cepeda_win": 0.1038,
+    "espriella_two_way_median": 53.26,
+    "cepeda_two_way_median": 46.74,
+    "margin_points_median": 6.53,
+    "lines": {
+      "pro_cepeda": {
+        "espriella_two_way": 50.59,
+        "cepeda_two_way": 49.41,
+        "margin_points": 1.18,
+        "leader": "espriella"
+      },
+      "neutral": {
+        "espriella_two_way": 53.26,
+        "cepeda_two_way": 46.74,
+        "margin_points": 6.53,
+        "leader": "espriella"
+      },
+      "pro_abelardo": {
+        "espriella_two_way": 55.96,
+        "cepeda_two_way": 44.04,
+        "margin_points": 11.93,
+        "leader": "espriella"
+      }
+    },
+    "ci80": [
+      49.94,
+      56.59
+    ],
+    "ci95": [
+      48.22,
+      58.37
+    ],
+    "margin_buckets": {
+      "Cepeda wins": 0.1038,
+      "Espriella 0-5": 0.2803,
+      "Espriella 5-10": 0.3632,
+      "Espriella 10+": 0.2528
+    }
+  },
+  "first_round": {
+    "election": "Colombia 2026 Presidential — First Round",
+    "date": "2026-05-31",
+    "source": "Registraduría Nacional / Wikipedia consolidation",
+    "turnout_pct": 57.89,
+    "total_valid_votes": 23685329,
+    "candidates": [
+      {
+        "name": "Abelardo de la Espriella",
+        "party": "Independent (right)",
+        "bloc": "right",
+        "votes": 10361499,
+        "pct": 43.75,
+        "runoff": "espriella"
+      },
+      {
+        "name": "Iván Cepeda",
+        "party": "Pacto Histórico (left)",
+        "bloc": "left",
+        "votes": 9688361,
+        "pct": 40.9,
+        "runoff": "cepeda"
+      },
+      {
+        "name": "Paloma Valencia",
+        "party": "Centro Democrático (right)",
+        "bloc": "right",
+        "votes": 1639685,
+        "pct": 6.92,
+        "runoff": null
+      },
+      {
+        "name": "Sergio Fajardo",
+        "party": "Dignidad y Compromiso (center)",
+        "bloc": "center",
+        "votes": 1009073,
+        "pct": 4.26,
+        "runoff": null
+      },
+      {
+        "name": "Claudia López",
+        "party": "Independent (center-left)",
+        "bloc": "center-left",
+        "votes": 225517,
+        "pct": 0.95,
+        "runoff": null
+      },
+      {
+        "name": "Santiago Botero Jaramillo",
+        "party": "Independent",
+        "bloc": "right",
+        "votes": 206140,
+        "pct": 0.87,
+        "runoff": null
+      },
+      {
+        "name": "Mauricio Lizcano",
+        "party": "Independent (center)",
+        "bloc": "center",
+        "votes": 53839,
+        "pct": 0.23,
+        "runoff": null
+      },
+      {
+        "name": "Miguel Uribe Londoño",
+        "party": "Partido Demócrata Colombiano",
+        "bloc": "right",
+        "votes": 28657,
+        "pct": 0.12,
+        "runoff": null
+      },
+      {
+        "name": "Sondra Macollins Garvin",
+        "party": "Independent",
+        "bloc": "other",
+        "votes": 19889,
+        "pct": 0.08,
+        "runoff": null
+      },
+      {
+        "name": "Roy Barreras",
+        "party": "La Fuerza (center-left)",
+        "bloc": "center-left",
+        "votes": 14108,
+        "pct": 0.06,
+        "runoff": null
+      },
+      {
+        "name": "Luis Gilberto Murillo",
+        "party": "Independent (center)",
+        "bloc": "center",
+        "votes": 13270,
+        "pct": 0.06,
+        "runoff": null
+      },
+      {
+        "name": "Carlos Caicedo",
+        "party": "Independent (left)",
+        "bloc": "left",
+        "votes": 12694,
+        "pct": 0.05,
+        "runoff": null
+      },
+      {
+        "name": "Gustavo Matamoros Camacho",
+        "party": "Partido Ecologista Colombiano",
+        "bloc": "other",
+        "votes": 5627,
+        "pct": 0.02,
+        "runoff": null
+      },
+      {
+        "name": "Blank votes",
+        "party": "—",
+        "bloc": "blank",
+        "votes": 406970,
+        "pct": 1.72,
+        "runoff": null
+      }
+    ]
+  },
+  "polls": {
+    "election": "Colombia 2026 Presidential — Runoff (segunda vuelta)",
+    "runoff_date": "2026-06-21",
+    "matchup": [
+      "espriella",
+      "cepeda"
+    ],
+    "note": "Head-to-head runoff voting intention. 'blank' = blank/null/undecided where reported. Pollster grades are coarse reliability weights (A best).",
+    "polls": [
+      {
+        "pollster": "AtlasIntel / Semana",
+        "grade": "A",
+        "n": 3850,
+        "date_start": "2026-06-09",
+        "date_end": "2026-06-11",
+        "espriella": 52.4,
+        "cepeda": 44.4,
+        "blank": 3.2
+      },
+      {
+        "pollster": "Guarumo / Ecoanalítica",
+        "grade": "B",
+        "n": 3200,
+        "date_start": "2026-06-08",
+        "date_end": "2026-06-11",
+        "espriella": 52.6,
+        "cepeda": 45.0,
+        "blank": 2.4
+      },
+      {
+        "pollster": "AtlasIntel / Semana",
+        "grade": "A",
+        "n": 3500,
+        "date_start": "2026-06-05",
+        "date_end": "2026-06-10",
+        "espriella": 52.2,
+        "cepeda": 44.5,
+        "blank": 3.3
+      },
+      {
+        "pollster": "CNC",
+        "grade": "A",
+        "n": 2400,
+        "date_start": "2026-06-06",
+        "date_end": "2026-06-13",
+        "espriella": 48.6,
+        "cepeda": 44.7,
+        "blank": 6.7
+      },
+      {
+        "pollster": "Celag Data",
+        "grade": "C",
+        "n": 2200,
+        "date_start": "2026-06-07",
+        "date_end": "2026-06-12",
+        "espriella": 39.7,
+        "cepeda": 40.8,
+        "blank": 19.5
+      },
+      {
+        "pollster": "Encuesta (consolidado prensa)",
+        "grade": "C",
+        "n": 1500,
+        "date_start": "2026-06-17",
+        "date_end": "2026-06-19",
+        "espriella": 52.6,
+        "cepeda": 45.0,
+        "blank": 2.4
+      },
+      {
+        "pollster": "AtlasIntel / Semana",
+        "grade": "A",
+        "n": 3300,
+        "date_start": "2026-06-01",
+        "date_end": "2026-06-02",
+        "espriella": 50.3,
+        "cepeda": 42.6,
+        "blank": 7.1
+      },
+      {
+        "pollster": "CNC (pre-1ra vuelta proj.)",
+        "grade": "B",
+        "n": 2000,
+        "date_start": "2026-05-15",
+        "date_end": "2026-05-22",
+        "espriella": 43.6,
+        "cepeda": 40.9,
+        "blank": 15.5
+      },
+      {
+        "pollster": "AtlasIntel / Semana (pre-1ra)",
+        "grade": "A",
+        "n": 3000,
+        "date_start": "2026-05-18",
+        "date_end": "2026-05-21",
+        "espriella": 50.0,
+        "cepeda": 41.3,
+        "blank": 8.7
+      }
+    ]
+  },
+  "polymarket": {
+    "source": "Polymarket (live Gamma API)",
+    "captured": "2026-06-21T21:21:05.285235+00:00",
+    "event": "Colombia Presidential Election",
+    "slug": "colombia-presidential-election",
+    "volume": 40264903.648664035,
+    "winner_market": {
+      "espriella": 0.83,
+      "cepeda": 0.17,
+      "espriella_normalized": 0.83,
+      "cepeda_normalized": 0.17,
+      "note": "Live Yes prices from Gamma API; *_normalized renormalize to the two-way runoff."
+    },
+    "raw": {
+      "espriella": {
+        "question": "Will Abelardo de la Espriella  win the 2026 Colombian presidential election?",
+        "prob": 0.83
+      },
+      "cepeda": {
+        "question": "Will Ivan Cepeda Castro win the 2026 Colombian presidential election?",
+        "prob": 0.17
+      }
+    },
+    "margin_market": {
+      "event": "Runoff margin of victory",
+      "buckets": [
+        {
+          "label": "de la Espriella by 5-10 pts",
+          "prob": 0.4
+        },
+        {
+          "label": "de la Espriella by 0-5 pts",
+          "prob": 0.28
+        },
+        {
+          "label": "de la Espriella by 10+ pts",
+          "prob": 0.16
+        },
+        {
+          "label": "Cepeda (any margin)",
+          "prob": 0.16
+        }
+      ]
+    }
+  },
+  "live": {
+    "mode": "OFICIAL — Boletín 1",
+    "source": "Registraduría Nacional (preconteo oficial)",
+    "captured": "2026-06-21T21:21:05.356352+00:00",
+    "method": "swing vs. past baseline (representativeness-weighted)",
+    "note": "national Boletín 1 only",
+    "national_reported_pct": 0.0009,
+    "n_reported_units": 0,
+    "scenario_shift_pts": 3.0,
+    "swing": {
+      "observed_left_pts": 6.02,
+      "prior_left_pts": -4.83,
+      "applied_left_pts": -4.77,
+      "observed_weight": 0.006
+    },
+    "lines": {
+      "pro_cepeda": {
+        "cepeda_two_way": 49.81,
+        "espriella_two_way": 50.19,
+        "leader": "espriella"
+      },
+      "neutral": {
+        "cepeda_two_way": 46.81,
+        "espriella_two_way": 53.19,
+        "leader": "espriella"
+      },
+      "pro_abelardo": {
+        "cepeda_two_way": 43.82,
+        "espriella_two_way": 56.18,
+        "leader": "espriella"
+      }
+    },
+    "projected_cepeda_two_way": 46.81,
+    "projected_espriella_two_way": 53.19,
+    "projected_leader": "espriella",
+    "counted_only_cepeda_two_way": 57.59,
+    "counted_only_espriella_two_way": 42.41,
+    "departments": [],
+    "regions": [
+      {
+        "region": "Pacífico",
+        "color": "#3498db",
+        "projected_left": 0.5717,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
+        "leader": "cepeda"
+      },
+      {
+        "region": "Caribe",
+        "color": "#1abc9c",
+        "projected_left": 0.5393,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
+        "leader": "cepeda"
+      },
+      {
+        "region": "Andina Centro",
+        "color": "#9b59b6",
+        "projected_left": 0.4774,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
+        "leader": "espriella"
+      },
+      {
+        "region": "Exterior",
+        "color": "#7f8c8d",
+        "projected_left": 0.4271,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
+        "leader": "espriella"
+      },
+      {
+        "region": "Orinoquía-Amazonía",
+        "color": "#27ae60",
+        "projected_left": 0.4106,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
+        "leader": "espriella"
+      },
+      {
+        "region": "Antioquia-Eje Cafetero",
+        "color": "#e74c3c",
+        "projected_left": 0.3605,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
+        "leader": "espriella"
+      },
+      {
+        "region": "Andina Oriente",
+        "color": "#f39c12",
+        "projected_left": 0.3482,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
+        "leader": "espriella"
+      }
+    ]
+  }
+}

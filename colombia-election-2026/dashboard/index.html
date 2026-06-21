@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Colombia 2026 · Análisis y Pronóstico de Segunda Vuelta</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#171b22; --panel2:#1d2230; --line:#2a3140;
+    --ink:#e8edf4; --muted:#8b95a7; --faint:#5b6678;
+    --esp:#e2574c;        /* de la Espriella (derecha) */
+    --cep:#f2b134;        /* Cepeda (izquierda, Pacto) */
+    --good:#3fb37f; --accent:#6aa3ff;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+       line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 22px 80px}
+  header.top{display:flex;justify-content:space-between;align-items:flex-end;
+       gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:18px}
+  h1{font-size:25px;margin:0;letter-spacing:-.02em}
+  h1 small{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-top:4px}
+  .badge{font-family:var(--mono);font-size:11px;color:var(--muted);
+       border:1px solid var(--line);border-radius:999px;padding:5px 11px;white-space:nowrap}
+  .badge.live{color:#fff;background:#7a2520;border-color:#a4332b}
+  section{margin-top:34px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);
+       margin:0 0 14px;font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .panel2{background:var(--panel2)}
+  /* headline */
+  .head{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .cand{position:relative;overflow:hidden}
+  .cand .name{font-size:15px;font-weight:600}
+  .cand .sub{font-size:12px;color:var(--muted)}
+  .cand .pwin{font-size:46px;font-weight:700;letter-spacing:-.03em;margin-top:6px;font-family:var(--mono)}
+  .cand .share{font-size:13px;color:var(--muted);margin-top:2px}
+  .cand.esp{border-left:4px solid var(--esp)} .cand.esp .pwin{color:var(--esp)}
+  .cand.cep{border-left:4px solid var(--cep)} .cand.cep .pwin{color:var(--cep)}
+  .winbar{height:10px;border-radius:6px;overflow:hidden;display:flex;margin-top:8px;background:#0b0e13}
+  .winbar i{display:block;height:100%}
+  /* band / three lines */
+  .band{position:relative;height:118px;margin-top:6px}
+  .axis{position:absolute;left:0;right:0;bottom:18px;height:1px;background:var(--line)}
+  .tick{position:absolute;bottom:0;font-family:var(--mono);font-size:10px;color:var(--faint);transform:translateX(-50%)}
+  .fifty{position:absolute;top:0;bottom:18px;width:1px;background:repeating-linear-gradient(#48506a 0 4px,transparent 4px 8px)}
+  .lineRow{position:absolute;left:0;right:0;height:30px;display:flex;align-items:center}
+  .dot{position:absolute;width:14px;height:14px;border-radius:50%;transform:translate(-50%,-50%);
+       border:2px solid #0e1116}
+  .lab{position:absolute;transform:translate(-50%,-26px);font-family:var(--mono);font-size:11px;white-space:nowrap}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:12px}
+  .legend b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+  /* signals */
+  .sig{display:flex;justify-content:space-between;align-items:baseline;margin:9px 0}
+  .sig .nm{font-size:13px}.sig .vl{font-family:var(--mono)}
+  .sig .wt{font-size:11px;color:var(--faint)}
+  .mut{color:var(--muted)} .mono{font-family:var(--mono)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  .pill{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:999px}
+  .pill.esp{background:#3a1f1d;color:#f2a59d}.pill.cep{background:#3a2f12;color:#f5cf73}
+  .repbar{height:6px;border-radius:4px;background:#0b0e13;overflow:hidden;min-width:60px}
+  .repbar i{display:block;height:100%;background:var(--accent)}
+  .note{font-size:12px;color:var(--muted)}
+  footer{margin-top:44px;border-top:1px solid var(--line);padding-top:18px;font-size:12px;color:var(--faint)}
+  a{color:var(--accent);text-decoration:none}
+  svg{display:block;width:100%;height:auto}
+  @media(max-width:720px){.grid2,.grid3,.head{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Colombia 2026 — Segunda Vuelta Presidencial
+      <small id="sub">de la Espriella vs. Cepeda · 21 de junio de 2026</small></h1>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span class="badge" id="modeBadge">cargando…</span>
+      <span class="badge" id="stampBadge"></span>
+      <span class="badge" id="refreshBadge" title="auto-actualización"></span>
+    </div>
+  </header>
+
+  <!-- HEADLINE -->
+  <section>
+    <h2>Pronóstico — probabilidad de ganar</h2>
+    <div class="head">
+      <div class="card cand esp">
+        <div class="name" id="espName">de la Espriella</div>
+        <div class="sub">Derecha · independiente</div>
+        <div class="pwin" id="espWin">—</div>
+        <div class="share" id="espShare"></div>
+      </div>
+      <div class="card cand cep">
+        <div class="name" id="cepName">Iván Cepeda</div>
+        <div class="sub">Izquierda · Pacto Histórico</div>
+        <div class="pwin" id="cepWin">—</div>
+        <div class="share" id="cepShare"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="winbar"><i id="wbEsp" style="background:var(--esp)"></i><i id="wbCep" style="background:var(--cep)"></i></div>
+      <div class="legend"><span><b style="background:var(--esp)"></b>de la Espriella</span>
+        <span><b style="background:var(--cep)"></b>Cepeda</span>
+        <span class="mut" id="ciNote"></span></div>
+    </div>
+  </section>
+
+  <!-- THREE LINES / MARGIN OF ERROR -->
+  <section>
+    <h2>Tres escenarios — margen de error (reparto 2 vías, % de la Espriella)</h2>
+    <div class="card">
+      <div class="band" id="bandFc"></div>
+      <div class="legend">
+        <span><b style="background:var(--cep)"></b>Pro-Cepeda (borde favorable a Cepeda)</span>
+        <span><b style="background:#9aa6bd"></b>Neutral (estimación central)</span>
+        <span><b style="background:var(--esp)"></b>Pro-Abelardo (borde favorable a Espriella)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIGNALS + TRANSFERS -->
+  <section class="grid2">
+    <div>
+      <h2>Señales del modelo (mezcla ponderada)</h2>
+      <div class="card" id="signals"></div>
+    </div>
+    <div>
+      <h2>Tendencia de encuestas · % a 2 vías (Espriella)</h2>
+      <div class="card"><svg id="trend" viewBox="0 0 520 220" preserveAspectRatio="none"></svg></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Trasvase de votos de primera vuelta</h2>
+    <div class="card"><table id="transfers"><thead><tr>
+      <th>Candidato (1ª vuelta)</th><th>Votos</th><th>→ Espriella</th><th>→ Cepeda</th></tr></thead>
+      <tbody></tbody></table></div>
+  </section>
+
+  <!-- LIVE -->
+  <section id="liveSec" style="display:none">
+    <h2>Conteo en vivo — proyección por escenarios</h2>
+    <div class="card" id="lvSwingCard" style="margin-bottom:16px;display:none">
+      <div class="note" id="lvSwing"></div>
+    </div>
+    <div class="grid3">
+      <div class="card"><div class="note">Mesas informadas (nacional)</div>
+        <div class="pwin mono" id="lvReported" style="font-size:34px">—</div>
+        <div class="repbar" style="margin-top:8px"><i id="lvRepBar"></i></div></div>
+      <div class="card"><div class="note">Proyección neutral</div>
+        <div class="pwin mono" id="lvNeutral" style="font-size:26px">—</div>
+        <div class="share" id="lvLeader"></div></div>
+      <div class="card"><div class="note">Solo escrutado (sin proyectar)</div>
+        <div class="pwin mono" id="lvCounted" style="font-size:26px">—</div>
+        <div class="share">votos ya contados</div></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="band" id="bandLive"></div>
+      <div class="legend">
+        <span><b style="background:var(--cep)"></b>Pro-Cepeda</span>
+        <span><b style="background:#9aa6bd"></b>Neutral</span>
+        <span><b style="background:var(--esp)"></b>Pro-Abelardo</span>
+        <span class="mut">las líneas convergen al 100% escrutado</span></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <table id="regions"><thead><tr><th>Región</th><th>Mesas</th>
+        <th>Proyección 2 vías</th><th>Líder</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <footer>
+    <div id="methodology"></div>
+    <p>Modelo: mezcla ponderada de encuestas (recencia + calidad + tamaño), fundamentos de
+    primera vuelta + trasvase, y probabilidad implícita de Polymarket; Monte Carlo
+    (50.000 simulaciones) para banda de incertidumbre. Proyección en vivo combina mesas
+    informadas con línea base regional 2022 recentrada por el swing nacional.
+    Datos en vivo: <a href="https://gamma-api.polymarket.com">Polymarket Gamma API</a> ·
+    <a href="https://resultados.registraduria.gov.co">Registraduría Nacional</a>.
+    Pronóstico, no resultado oficial.</p>
+  </footer>
+</div>
+
+<script src="forecast.js"></script>
+<script>
+const F = window.FORECAST;
+const pct = x => (x).toFixed(1) + "%";
+const $ = id => document.getElementById(id);
+
+function fmtInt(n){ return (n||0).toLocaleString("es-CO"); }
+function fmtStamp(iso){
+  if(!iso) return "—";
+  const d=new Date(iso); if(isNaN(d)) return iso;
+  return d.toLocaleString("es-CO",{hour:"2-digit",minute:"2-digit",second:"2-digit",
+    day:"2-digit",month:"short"});
+}
+
+// Auto-refresh: reload the page on F.refresh_secs (full reload re-reads
+// forecast.js from disk, so it works from file:// and from a server).
+function setupAutoRefresh(){
+  const secs = (window.FORECAST && window.FORECAST.refresh_secs) || 300;
+  let left = secs;
+  const badge = $("refreshBadge");
+  const tick = () => {
+    const m = String(Math.floor(left/60)).padStart(2,"0");
+    const s = String(left%60).padStart(2,"0");
+    badge.textContent = "↻ " + m + ":" + s;
+    if(left-- <= 0){ location.reload(); }
+  };
+  tick(); setInterval(tick, 1000);
+}
+
+function renderHeadline(){
+  const f = F.forecast;
+  $("modeBadge").textContent = F.live ? "CONTEO EN VIVO" : "PRONÓSTICO PRE-ELECTORAL";
+  if(F.live) $("modeBadge").classList.add("live");
+  $("stampBadge").textContent = "actualizado " + fmtStamp(F.generated_at);
+  $("espWin").textContent = pct(f.p_espriella_win*100);
+  $("cepWin").textContent = pct(f.p_cepeda_win*100);
+  $("espShare").textContent = "voto 2 vías ~ " + pct(f.espriella_two_way_median);
+  $("cepShare").textContent = "voto 2 vías ~ " + pct(f.cepeda_two_way_median);
+  $("wbEsp").style.width = f.p_espriella_win*100 + "%";
+  $("wbCep").style.width = f.p_cepeda_win*100 + "%";
+  $("ciNote").textContent = "IC 80% del voto Espriella: " + f.ci80[0] + "%–" + f.ci80[1] + "%  ·  margen " +
+    (f.margin_points_median>0?"+":"") + f.margin_points_median + " pts";
+}
+
+// Three-line band, domain 40–60% Espriella two-way
+function renderBand(elId, lines, key){
+  const el = $(elId); el.innerHTML = "";
+  const lo=40, hi=60, span=hi-lo;
+  const x = v => ((v-lo)/span)*100;
+  // axis + ticks + 50 line
+  const ax=document.createElement("div"); ax.className="axis"; el.appendChild(ax);
+  [40,45,50,55,60].forEach(t=>{ const d=document.createElement("div");
+    d.className="tick"; d.style.left=x(t)+"%"; d.textContent=t+"%"; el.appendChild(d); });
+  const fifty=document.createElement("div"); fifty.className="fifty"; fifty.style.left=x(50)+"%"; el.appendChild(fifty);
+  const rows=[["pro_cepeda","var(--cep)",10],["neutral","#9aa6bd",44],["pro_abelardo","var(--esp)",78]];
+  rows.forEach(([k,color,top])=>{
+    const v = lines[k][key];                 // espriella_two_way
+    const dot=document.createElement("div"); dot.className="dot";
+    dot.style.background=color; dot.style.left=x(v)+"%"; dot.style.top=top+"px"; el.appendChild(dot);
+    const lab=document.createElement("div"); lab.className="lab"; lab.style.color=color;
+    lab.style.left=x(v)+"%"; lab.style.top=top+"px"; lab.textContent=v.toFixed(1)+"%"; el.appendChild(lab);
+  });
+}
+
+function renderSignals(){
+  const s=F.signals, w=F.weights, host=$("signals");
+  const order=[["polls","Encuestas (ponderadas)"],["fundamentals","1ª vuelta + trasvase"],["market","Polymarket implícito"]];
+  order.forEach(([k,label])=>{
+    const sig=s[k];
+    const div=document.createElement("div"); div.className="sig";
+    div.innerHTML=`<span class="nm">${label}<div class="wt">peso ${(w[k]*100).toFixed(0)}% · ±${sig.sd_pct} pts</div></span>`+
+      `<span class="vl">${sig.mu_pct}% <span class="mut">Espriella</span></span>`;
+    host.appendChild(div);
+  });
+  const tot=document.createElement("div"); tot.className="sig";
+  tot.style.borderTop="1px solid var(--line)"; tot.style.marginTop="12px"; tot.style.paddingTop="12px";
+  tot.innerHTML=`<span class="nm"><b>Mezcla final</b></span><span class="vl"><b>${F.forecast.espriella_two_way_median}%</b></span>`;
+  host.appendChild(tot);
+}
+
+function renderTrend(){
+  const polls=[...F.polls.polls].map(p=>({d:p.date_end, v:p.espriella/(p.espriella+p.cepeda)*100}))
+    .sort((a,b)=>a.d.localeCompare(b.d));
+  const svg=$("trend"), W=520,H=220,pad=34;
+  const xs=polls.map(p=>+new Date(p.d)), x0=Math.min(...xs), x1=Math.max(...xs);
+  const y0=42,y1=58;
+  const X=t=>pad+((+new Date(t)-x0)/(x1-x0||1))*(W-pad-10);
+  const Y=v=>H-pad-((v-y0)/(y1-y0))*(H-pad-14);
+  let g="";
+  // 50% reference
+  g+=`<line x1="${pad}" y1="${Y(50)}" x2="${W-10}" y2="${Y(50)}" stroke="#48506a" stroke-dasharray="4 4"/>`;
+  g+=`<text x="${pad}" y="${Y(50)-4}" fill="#5b6678" font-size="10">50%</text>`;
+  [44,48,52,56].forEach(v=>{ g+=`<text x="6" y="${Y(v)+3}" fill="#5b6678" font-size="10">${v}</text>`; });
+  // poll path
+  let path=polls.map((p,i)=>(i?"L":"M")+X(p.d)+" "+Y(p.v)).join(" ");
+  g+=`<path d="${path}" fill="none" stroke="var(--esp)" stroke-width="2"/>`;
+  polls.forEach(p=>{ g+=`<circle cx="${X(p.d)}" cy="${Y(p.v)}" r="3.5" fill="var(--esp)"/>`; });
+  // final forecast marker
+  const fv=F.forecast.espriella_two_way_median;
+  g+=`<circle cx="${W-10}" cy="${Y(fv)}" r="5" fill="none" stroke="#fff" stroke-width="2"/>`;
+  g+=`<text x="${W-16}" y="${Y(fv)-9}" fill="#e8edf4" font-size="11" text-anchor="end">modelo ${fv}%</text>`;
+  svg.innerHTML=g;
+}
+
+function renderTransfers(){
+  const tb=$("transfers").querySelector("tbody");
+  F.signals.fundamentals.transfers.forEach(t=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${t.name}</td><td class="mono">${fmtInt(t.votes)}</td>`+
+      `<td class="mono" style="color:var(--esp)">${(t.to_espriella*100).toFixed(0)}%</td>`+
+      `<td class="mono" style="color:var(--cep)">${(t.to_cepeda*100).toFixed(0)}%</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function renderLive(){
+  if(!F.live){ return; }
+  const lv=F.live; $("liveSec").style.display="block";
+  $("modeBadge").textContent = "EN VIVO · " + lv.mode;
+  $("lvReported").textContent = (lv.national_reported_pct*100).toFixed(1)+"%";
+  $("lvRepBar").style.width = (lv.national_reported_pct*100)+"%";
+  const n=lv.lines.neutral;
+  $("lvNeutral").innerHTML = `<span style="color:var(--esp)">${n.espriella_two_way}%</span> · <span style="color:var(--cep)">${n.cepeda_two_way}%</span>`;
+  $("lvLeader").textContent = "líder proyectado: " + (lv.projected_leader==="espriella"?"de la Espriella":"Cepeda");
+  if(lv.counted_only_espriella_two_way!=null)
+    $("lvCounted").innerHTML = `<span style="color:var(--esp)">${lv.counted_only_espriella_two_way}%</span> · <span style="color:var(--cep)">${lv.counted_only_cepeda_two_way}%</span>`;
+  // Swing-based explainer: why the raw count and the projection can diverge.
+  if(lv.swing){
+    const s=lv.swing, repr=(s.observed_weight*100).toFixed(1);
+    const obsDir = s.observed_left_pts>0 ? "hacia Cepeda" : "hacia Espriella";
+    const ld = lv.projected_leader==="espriella"?"de la Espriella":"Cepeda";
+    $("lvSwingCard").style.display="block";
+    $("lvSwing").innerHTML =
+      `<b style="color:var(--ink)">Método: swing contra el pasado.</b> Lo que importa no es el conteo bruto `+
+      `sino <b>de qué mesas</b> viene, comparado con cómo votaron antes. `+
+      `Mesas informadas: <b>${(lv.national_reported_pct*100).toFixed(2)}%</b> → representatividad <b>${repr}%</b>. `+
+      `Swing observado: <b>${s.observed_left_pts>0?"+":""}${s.observed_left_pts} pts</b> ${obsDir}, `+
+      `pero al ser poco representativo se aplica un swing de <b>${s.applied_left_pts>0?"+":""}${s.applied_left_pts} pts</b> `+
+      `(prior ${s.prior_left_pts} pts). Por eso el conteo crudo puede favorecer a Cepeda mientras la `+
+      `proyección ajustada mantiene a <b style="color:${lv.projected_leader==='espriella'?'var(--esp)':'var(--cep)'}">${ld}</b>.`;
+  }
+  renderBand("bandLive", lv.lines, "espriella_two_way");
+  const tb=$("regions").querySelector("tbody");
+  lv.regions.forEach(r=>{
+    const esp=(100-r.projected_left*100), cep=r.projected_left*100;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${r.region}</td>`+
+      `<td><div class="repbar"><i style="width:${(r.reported_pct*100)}%"></i></div>`+
+      `<span class="mono" style="font-size:11px;color:var(--muted)">${(r.reported_pct*100).toFixed(0)}%</span></td>`+
+      `<td class="mono"><span style="color:var(--esp)">${esp.toFixed(1)}</span> / <span style="color:var(--cep)">${cep.toFixed(1)}</span></td>`+
+      `<td><span class="pill ${r.leader}">${r.leader==="espriella"?"Espriella":"Cepeda"}</span></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function renderMethodology(){
+  const f=F.forecast;
+  $("methodology").innerHTML =
+    `<b style="color:var(--ink)">Resumen.</b> El modelo combina ${F.signals.polls.n_polls} encuestas de segunda vuelta, `+
+    `el trasvase de votos desde la primera vuelta y la probabilidad implícita de Polymarket `+
+    `(${(F.polymarket.winner_market.espriella*100).toFixed(0)}% Espriella). `+
+    `Resultado central: <b style="color:var(--esp)">de la Espriella ${f.espriella_two_way_median}%</b> vs `+
+    `<b style="color:var(--cep)">Cepeda ${f.cepeda_two_way_median}%</b>, `+
+    `probabilidad de victoria de Espriella ${pct(f.p_espriella_win*100)}.`;
+}
+
+renderHeadline();
+renderBand("bandFc", F.forecast.lines, "espriella_two_way");
+renderSignals();
+renderTrend();
+renderTransfers();
+renderLive();
+renderMethodology();
+setupAutoRefresh();
+</script>
+</body>
+</html>

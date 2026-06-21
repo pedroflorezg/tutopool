@@ -1,0 +1,23 @@
+{
+  "election": "Colombia 2026 Presidential — First Round",
+  "date": "2026-05-31",
+  "source": "Registraduría Nacional / Wikipedia consolidation",
+  "turnout_pct": 57.89,
+  "total_valid_votes": 23685329,
+  "candidates": [
+    { "name": "Abelardo de la Espriella", "party": "Independent (right)",        "bloc": "right",  "votes": 10361499, "pct": 43.75, "runoff": "espriella" },
+    { "name": "Iván Cepeda",              "party": "Pacto Histórico (left)",      "bloc": "left",   "votes": 9688361,  "pct": 40.90, "runoff": "cepeda" },
+    { "name": "Paloma Valencia",          "party": "Centro Democrático (right)",  "bloc": "right",  "votes": 1639685,  "pct": 6.92,  "runoff": null },
+    { "name": "Sergio Fajardo",           "party": "Dignidad y Compromiso (center)","bloc": "center","votes": 1009073, "pct": 4.26,  "runoff": null },
+    { "name": "Claudia López",            "party": "Independent (center-left)",   "bloc": "center-left", "votes": 225517, "pct": 0.95, "runoff": null },
+    { "name": "Santiago Botero Jaramillo","party": "Independent",                 "bloc": "right",  "votes": 206140,   "pct": 0.87,  "runoff": null },
+    { "name": "Mauricio Lizcano",         "party": "Independent (center)",        "bloc": "center", "votes": 53839,    "pct": 0.23,  "runoff": null },
+    { "name": "Miguel Uribe Londoño",     "party": "Partido Demócrata Colombiano","bloc": "right",  "votes": 28657,    "pct": 0.12,  "runoff": null },
+    { "name": "Sondra Macollins Garvin",  "party": "Independent",                 "bloc": "other",  "votes": 19889,    "pct": 0.08,  "runoff": null },
+    { "name": "Roy Barreras",             "party": "La Fuerza (center-left)",     "bloc": "center-left", "votes": 14108, "pct": 0.06, "runoff": null },
+    { "name": "Luis Gilberto Murillo",    "party": "Independent (center)",        "bloc": "center", "votes": 13270,    "pct": 0.06,  "runoff": null },
+    { "name": "Carlos Caicedo",           "party": "Independent (left)",          "bloc": "left",   "votes": 12694,    "pct": 0.05,  "runoff": null },
+    { "name": "Gustavo Matamoros Camacho","party": "Partido Ecologista Colombiano","bloc": "other","votes": 5627,     "pct": 0.02,  "runoff": null },
+    { "name": "Blank votes",              "party": "—",                           "bloc": "blank",  "votes": 406970,   "pct": 1.72,  "runoff": null }
+  ]
+}

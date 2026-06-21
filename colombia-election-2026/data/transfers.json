@@ -1,0 +1,21 @@
+{
+  "note": "Estimated runoff vote-transfer matrix for first-round losers. Each entry: share of that candidate's first-round voters expected to go to Espriella / Cepeda / abstain-or-blank. Grounded in endorsements (Valencia->Espriella, López/Samper->Cepeda) and bloc affinity; 'sd' is the 1-sigma uncertainty on the Espriella share used by the Monte Carlo.",
+  "transfers": {
+    "Paloma Valencia":          { "to_espriella": 0.76, "to_cepeda": 0.10, "abstain": 0.14, "sd": 0.06 },
+    "Sergio Fajardo":           { "to_espriella": 0.34, "to_cepeda": 0.41, "abstain": 0.25, "sd": 0.08 },
+    "Claudia López":            { "to_espriella": 0.15, "to_cepeda": 0.70, "abstain": 0.15, "sd": 0.07 },
+    "Santiago Botero Jaramillo":{ "to_espriella": 0.70, "to_cepeda": 0.12, "abstain": 0.18, "sd": 0.08 },
+    "Mauricio Lizcano":         { "to_espriella": 0.45, "to_cepeda": 0.35, "abstain": 0.20, "sd": 0.10 },
+    "Miguel Uribe Londoño":     { "to_espriella": 0.78, "to_cepeda": 0.07, "abstain": 0.15, "sd": 0.08 },
+    "Roy Barreras":             { "to_espriella": 0.15, "to_cepeda": 0.65, "abstain": 0.20, "sd": 0.10 },
+    "Luis Gilberto Murillo":    { "to_espriella": 0.30, "to_cepeda": 0.45, "abstain": 0.25, "sd": 0.10 },
+    "Carlos Caicedo":           { "to_espriella": 0.10, "to_cepeda": 0.72, "abstain": 0.18, "sd": 0.08 },
+    "_default":                 { "to_espriella": 0.40, "to_cepeda": 0.40, "abstain": 0.20, "sd": 0.12 }
+  },
+  "base_retention": {
+    "note": "Share of own first-round base expected to turn out again in the runoff.",
+    "espriella": 0.97,
+    "cepeda": 0.97,
+    "sd": 0.02
+  }
+}

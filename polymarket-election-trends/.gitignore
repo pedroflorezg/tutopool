@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+# regenerable raw API cache
+data/markets.json
+data/history.json
