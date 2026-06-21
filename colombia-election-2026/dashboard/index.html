@@ -146,6 +146,9 @@
   <!-- LIVE -->
   <section id="liveSec" style="display:none">
     <h2>Conteo en vivo — proyección por escenarios</h2>
+    <div class="card" id="lvSwingCard" style="margin-bottom:16px;display:none">
+      <div class="note" id="lvSwing"></div>
+    </div>
     <div class="grid3">
       <div class="card"><div class="note">Mesas informadas (nacional)</div>
         <div class="pwin mono" id="lvReported" style="font-size:34px">—</div>
@@ -309,6 +312,21 @@ function renderLive(){
   $("lvLeader").textContent = "líder proyectado: " + (lv.projected_leader==="espriella"?"de la Espriella":"Cepeda");
   if(lv.counted_only_espriella_two_way!=null)
     $("lvCounted").innerHTML = `<span style="color:var(--esp)">${lv.counted_only_espriella_two_way}%</span> · <span style="color:var(--cep)">${lv.counted_only_cepeda_two_way}%</span>`;
+  // Swing-based explainer: why the raw count and the projection can diverge.
+  if(lv.swing){
+    const s=lv.swing, repr=(s.observed_weight*100).toFixed(1);
+    const obsDir = s.observed_left_pts>0 ? "hacia Cepeda" : "hacia Espriella";
+    const ld = lv.projected_leader==="espriella"?"de la Espriella":"Cepeda";
+    $("lvSwingCard").style.display="block";
+    $("lvSwing").innerHTML =
+      `<b style="color:var(--ink)">Método: swing contra el pasado.</b> Lo que importa no es el conteo bruto `+
+      `sino <b>de qué mesas</b> viene, comparado con cómo votaron antes. `+
+      `Mesas informadas: <b>${(lv.national_reported_pct*100).toFixed(2)}%</b> → representatividad <b>${repr}%</b>. `+
+      `Swing observado: <b>${s.observed_left_pts>0?"+":""}${s.observed_left_pts} pts</b> ${obsDir}, `+
+      `pero al ser poco representativo se aplica un swing de <b>${s.applied_left_pts>0?"+":""}${s.applied_left_pts} pts</b> `+
+      `(prior ${s.prior_left_pts} pts). Por eso el conteo crudo puede favorecer a Cepeda mientras la `+
+      `proyección ajustada mantiene a <b style="color:${lv.projected_leader==='espriella'?'var(--esp)':'var(--cep)'}">${ld}</b>.`;
+  }
   renderBand("bandLive", lv.lines, "espriella_two_way");
   const tb=$("regions").querySelector("tbody");
   lv.regions.forEach(r=>{

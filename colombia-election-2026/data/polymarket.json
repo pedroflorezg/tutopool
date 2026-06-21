@@ -1,24 +1,24 @@
 {
   "source": "Polymarket (live Gamma API)",
-  "captured": "2026-06-21T18:15:25.666980+00:00",
+  "captured": "2026-06-21T21:21:05.285235+00:00",
   "event": "Colombia Presidential Election",
   "slug": "colombia-presidential-election",
-  "volume": 39878934.417814024,
+  "volume": 40264903.648664035,
   "winner_market": {
-    "espriella": 0.79,
-    "cepeda": 0.215,
-    "espriella_normalized": 0.7861,
-    "cepeda_normalized": 0.2139,
+    "espriella": 0.83,
+    "cepeda": 0.17,
+    "espriella_normalized": 0.83,
+    "cepeda_normalized": 0.17,
     "note": "Live Yes prices from Gamma API; *_normalized renormalize to the two-way runoff."
   },
   "raw": {
     "espriella": {
       "question": "Will Abelardo de la Espriella  win the 2026 Colombian presidential election?",
-      "prob": 0.79
+      "prob": 0.83
     },
     "cepeda": {
       "question": "Will Ivan Cepeda Castro win the 2026 Colombian presidential election?",
-      "prob": 0.215
+      "prob": 0.17
     }
   },
   "margin_market": {

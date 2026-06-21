@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T18:15:25+00:00",
+  "generated_at": "2026-06-21T21:21:05+00:00",
   "runoff_date": "2026-06-21",
   "candidates": {
     "espriella": {
@@ -172,53 +172,53 @@
     },
     "market": {
       "name": "Polymarket-implied",
-      "mu": 0.5237857329626311,
+      "mu": 0.5286249575943858,
       "sd": 0.03,
-      "p_win_input": 0.79,
-      "p_win_normalized": 0.7860696517412935,
-      "mu_pct": 52.38,
+      "p_win_input": 0.83,
+      "p_win_normalized": 0.83,
+      "mu_pct": 52.86,
       "sd_pct": 3.0
     }
   },
   "forecast": {
-    "p_espriella_win": 0.886,
-    "p_cepeda_win": 0.114,
-    "espriella_two_way_median": 53.12,
-    "cepeda_two_way_median": 46.88,
-    "margin_points_median": 6.24,
+    "p_espriella_win": 0.8962,
+    "p_cepeda_win": 0.1038,
+    "espriella_two_way_median": 53.26,
+    "cepeda_two_way_median": 46.74,
+    "margin_points_median": 6.53,
     "lines": {
       "pro_cepeda": {
-        "espriella_two_way": 50.44,
-        "cepeda_two_way": 49.56,
-        "margin_points": 0.89,
+        "espriella_two_way": 50.59,
+        "cepeda_two_way": 49.41,
+        "margin_points": 1.18,
         "leader": "espriella"
       },
       "neutral": {
-        "espriella_two_way": 53.12,
-        "cepeda_two_way": 46.88,
-        "margin_points": 6.24,
+        "espriella_two_way": 53.26,
+        "cepeda_two_way": 46.74,
+        "margin_points": 6.53,
         "leader": "espriella"
       },
       "pro_abelardo": {
-        "espriella_two_way": 55.82,
-        "cepeda_two_way": 44.18,
-        "margin_points": 11.64,
+        "espriella_two_way": 55.96,
+        "cepeda_two_way": 44.04,
+        "margin_points": 11.93,
         "leader": "espriella"
       }
     },
     "ci80": [
-      49.8,
-      56.45
+      49.94,
+      56.59
     ],
     "ci95": [
-      48.08,
-      58.22
+      48.22,
+      58.37
     ],
     "margin_buckets": {
-      "Cepeda wins": 0.114,
-      "Espriella 0-5": 0.2914,
-      "Espriella 5-10": 0.358,
-      "Espriella 10+": 0.2366
+      "Cepeda wins": 0.1038,
+      "Espriella 0-5": 0.2803,
+      "Espriella 5-10": 0.3632,
+      "Espriella 10+": 0.2528
     }
   },
   "first_round": {
@@ -445,25 +445,25 @@
   },
   "polymarket": {
     "source": "Polymarket (live Gamma API)",
-    "captured": "2026-06-21T18:15:25.666980+00:00",
+    "captured": "2026-06-21T21:21:05.285235+00:00",
     "event": "Colombia Presidential Election",
     "slug": "colombia-presidential-election",
-    "volume": 39878934.417814024,
+    "volume": 40264903.648664035,
     "winner_market": {
-      "espriella": 0.79,
-      "cepeda": 0.215,
-      "espriella_normalized": 0.7861,
-      "cepeda_normalized": 0.2139,
+      "espriella": 0.83,
+      "cepeda": 0.17,
+      "espriella_normalized": 0.83,
+      "cepeda_normalized": 0.17,
       "note": "Live Yes prices from Gamma API; *_normalized renormalize to the two-way runoff."
     },
     "raw": {
       "espriella": {
         "question": "Will Abelardo de la Espriella  win the 2026 Colombian presidential election?",
-        "prob": 0.79
+        "prob": 0.83
       },
       "cepeda": {
         "question": "Will Ivan Cepeda Castro win the 2026 Colombian presidential election?",
-        "prob": 0.215
+        "prob": 0.17
       }
     },
     "margin_market": {
@@ -489,505 +489,105 @@
     }
   },
   "live": {
-    "mode": "SIMULATED @ ~30% national reported",
-    "source": "Simulation",
-    "captured": "2026-06-21T18:15:25.724432+00:00",
-    "national_reported_pct": 0.3024,
+    "mode": "OFICIAL — Boletín 1",
+    "source": "Registraduría Nacional (preconteo oficial)",
+    "captured": "2026-06-21T21:21:05.356352+00:00",
+    "method": "swing vs. past baseline (representativeness-weighted)",
+    "note": "national Boletín 1 only",
+    "national_reported_pct": 0.0009,
+    "n_reported_units": 0,
     "scenario_shift_pts": 3.0,
+    "swing": {
+      "observed_left_pts": 6.02,
+      "prior_left_pts": -4.83,
+      "applied_left_pts": -4.77,
+      "observed_weight": 0.006
+    },
     "lines": {
       "pro_cepeda": {
-        "cepeda_two_way": 48.78,
-        "espriella_two_way": 51.22,
+        "cepeda_two_way": 49.81,
+        "espriella_two_way": 50.19,
         "leader": "espriella"
       },
       "neutral": {
-        "cepeda_two_way": 46.68,
-        "espriella_two_way": 53.32,
+        "cepeda_two_way": 46.81,
+        "espriella_two_way": 53.19,
         "leader": "espriella"
       },
       "pro_abelardo": {
-        "cepeda_two_way": 44.59,
-        "espriella_two_way": 55.41,
+        "cepeda_two_way": 43.82,
+        "espriella_two_way": 56.18,
         "leader": "espriella"
       }
     },
-    "projected_cepeda_two_way": 46.68,
-    "projected_espriella_two_way": 53.32,
+    "projected_cepeda_two_way": 46.81,
+    "projected_espriella_two_way": 53.19,
     "projected_leader": "espriella",
-    "counted_only_cepeda_two_way": 46.07,
-    "counted_only_espriella_two_way": 53.93,
-    "departments": [
-      {
-        "department": "Bogotá D.C.",
-        "region": "Andina Centro",
-        "weight": 0.1726,
-        "reported_pct": 0.0,
-        "expected_left": 0.5278,
-        "actual_left": 0.5278,
-        "projected_left": 0.5278,
-        "espriella_votes": 0,
-        "cepeda_votes": 0,
-        "leader": "cepeda"
-      },
-      {
-        "department": "Antioquia",
-        "region": "Antioquia-Eje Cafetero",
-        "weight": 0.1246,
-        "reported_pct": 0.1806,
-        "expected_left": 0.3578,
-        "actual_left": 0.35,
-        "projected_left": 0.3564,
-        "espriella_votes": 351130,
-        "cepeda_votes": 189104,
-        "leader": "espriella"
-      },
-      {
-        "department": "Valle del Cauca",
-        "region": "Pacífico",
-        "weight": 0.0911,
-        "reported_pct": 0.0,
-        "expected_left": 0.4978,
-        "actual_left": 0.4978,
-        "projected_left": 0.4978,
-        "espriella_votes": 0,
-        "cepeda_votes": 0,
-        "leader": "espriella"
-      },
-      {
-        "department": "Cundinamarca",
-        "region": "Andina Centro",
-        "weight": 0.0594,
-        "reported_pct": 0.788,
-        "expected_left": 0.3978,
-        "actual_left": 0.4017,
-        "projected_left": 0.4009,
-        "espriella_votes": 672609,
-        "cepeda_votes": 451653,
-        "leader": "espriella"
-      },
-      {
-        "department": "Atlántico",
-        "region": "Caribe",
-        "weight": 0.0556,
-        "reported_pct": 0.4885,
-        "expected_left": 0.5578,
-        "actual_left": 0.578,
-        "projected_left": 0.5677,
-        "espriella_votes": 275131,
-        "cepeda_votes": 376772,
-        "leader": "cepeda"
-      },
-      {
-        "department": "Santander",
-        "region": "Andina Oriente",
-        "weight": 0.0431,
-        "reported_pct": 0.1616,
-        "expected_left": 0.3278,
-        "actual_left": 0.3248,
-        "projected_left": 0.3273,
-        "espriella_votes": 112978,
-        "cepeda_votes": 54352,
-        "leader": "espriella"
-      },
-      {
-        "department": "Bolívar",
-        "region": "Caribe",
-        "weight": 0.0384,
-        "reported_pct": 0.6048,
-        "expected_left": 0.5478,
-        "actual_left": 0.5263,
-        "projected_left": 0.5348,
-        "espriella_votes": 263726,
-        "cepeda_votes": 292975,
-        "leader": "cepeda"
-      },
-      {
-        "department": "Córdoba",
-        "region": "Caribe",
-        "weight": 0.0326,
-        "reported_pct": 0.4219,
-        "expected_left": 0.5278,
-        "actual_left": 0.4954,
-        "projected_left": 0.5141,
-        "espriella_votes": 166544,
-        "cepeda_votes": 163496,
-        "leader": "cepeda"
-      },
-      {
-        "department": "Nariño",
-        "region": "Pacífico",
-        "weight": 0.0316,
-        "reported_pct": 0.6147,
-        "expected_left": 0.6478,
-        "actual_left": 0.6339,
-        "projected_left": 0.6393,
-        "espriella_votes": 170877,
-        "cepeda_votes": 295899,
-        "leader": "cepeda"
-      },
-      {
-        "department": "Tolima",
-        "region": "Andina Centro",
-        "weight": 0.0288,
-        "reported_pct": 0.1355,
-        "expected_left": 0.4178,
-        "actual_left": 0.4301,
-        "projected_left": 0.4195,
-        "espriella_votes": 53317,
-        "cepeda_votes": 40233,
-        "leader": "espriella"
-      },
-      {
-        "department": "Norte de Santander",
-        "region": "Andina Oriente",
-        "weight": 0.0278,
-        "reported_pct": 0.6412,
-        "expected_left": 0.3578,
-        "actual_left": 0.3548,
-        "projected_left": 0.3559,
-        "espriella_votes": 276076,
-        "cepeda_votes": 151788,
-        "leader": "espriella"
-      },
-      {
-        "department": "Cauca",
-        "region": "Pacífico",
-        "weight": 0.0268,
-        "reported_pct": 0.3796,
-        "expected_left": 0.6678,
-        "actual_left": 0.6656,
-        "projected_left": 0.667,
-        "espriella_votes": 81779,
-        "cepeda_votes": 162769,
-        "leader": "cepeda"
-      },
-      {
-        "department": "Magdalena",
-        "region": "Caribe",
-        "weight": 0.0259,
-        "reported_pct": 0.3698,
-        "expected_left": 0.5078,
-        "actual_left": 0.4756,
-        "projected_left": 0.4959,
-        "espriella_votes": 120492,
-        "cepeda_votes": 109285,
-        "leader": "espriella"
-      },
-      {
-        "department": "Huila",
-        "region": "Andina Centro",
-        "weight": 0.023,
-        "reported_pct": 0.5595,
-        "expected_left": 0.3878,
-        "actual_left": 0.3838,
-        "projected_left": 0.3856,
-        "espriella_votes": 190403,
-        "cepeda_votes": 118571,
-        "leader": "espriella"
-      },
-      {
-        "department": "Boyacá",
-        "region": "Andina Oriente",
-        "weight": 0.023,
-        "reported_pct": 0.3754,
-        "expected_left": 0.3778,
-        "actual_left": 0.3084,
-        "projected_left": 0.3518,
-        "espriella_votes": 143374,
-        "cepeda_votes": 63919,
-        "leader": "espriella"
-      },
-      {
-        "department": "Cesar",
-        "region": "Caribe",
-        "weight": 0.0221,
-        "reported_pct": 0.4502,
-        "expected_left": 0.4978,
-        "actual_left": 0.4905,
-        "projected_left": 0.4946,
-        "espriella_votes": 121380,
-        "cepeda_votes": 116873,
-        "leader": "espriella"
-      },
-      {
-        "department": "Caldas",
-        "region": "Antioquia-Eje Cafetero",
-        "weight": 0.0201,
-        "reported_pct": 0.2021,
-        "expected_left": 0.3478,
-        "actual_left": 0.3838,
-        "projected_left": 0.3551,
-        "espriella_votes": 60177,
-        "cepeda_votes": 37484,
-        "leader": "espriella"
-      },
-      {
-        "department": "Sucre",
-        "region": "Caribe",
-        "weight": 0.0182,
-        "reported_pct": 0.5445,
-        "expected_left": 0.5878,
-        "actual_left": 0.5965,
-        "projected_left": 0.5926,
-        "espriella_votes": 96048,
-        "cepeda_votes": 142010,
-        "leader": "cepeda"
-      },
-      {
-        "department": "Risaralda",
-        "region": "Antioquia-Eje Cafetero",
-        "weight": 0.0182,
-        "reported_pct": 0.3123,
-        "expected_left": 0.3878,
-        "actual_left": 0.4127,
-        "projected_left": 0.3956,
-        "espriella_votes": 80176,
-        "cepeda_votes": 56351,
-        "leader": "espriella"
-      },
-      {
-        "department": "Meta",
-        "region": "Orinoquía-Amazonía",
-        "weight": 0.0182,
-        "reported_pct": 0.327,
-        "expected_left": 0.3778,
-        "actual_left": 0.3667,
-        "projected_left": 0.3742,
-        "espriella_votes": 90549,
-        "cepeda_votes": 52434,
-        "leader": "espriella"
-      },
-      {
-        "department": "La Guajira",
-        "region": "Caribe",
-        "weight": 0.0153,
-        "reported_pct": 0.1425,
-        "expected_left": 0.5478,
-        "actual_left": 0.5614,
-        "projected_left": 0.5498,
-        "espriella_votes": 23016,
-        "cepeda_votes": 29463,
-        "leader": "cepeda"
-      },
-      {
-        "department": "Quindío",
-        "region": "Antioquia-Eje Cafetero",
-        "weight": 0.0125,
-        "reported_pct": 0.5104,
-        "expected_left": 0.3778,
-        "actual_left": 0.3454,
-        "projected_left": 0.3613,
-        "espriella_votes": 99935,
-        "cepeda_votes": 52731,
-        "leader": "espriella"
-      },
-      {
-        "department": "Chocó",
-        "region": "Pacífico",
-        "weight": 0.0105,
-        "reported_pct": 0.2554,
-        "expected_left": 0.7478,
-        "actual_left": 0.7391,
-        "projected_left": 0.7456,
-        "espriella_votes": 16865,
-        "cepeda_votes": 47785,
-        "leader": "cepeda"
-      },
-      {
-        "department": "Caquetá",
-        "region": "Orinoquía-Amazonía",
-        "weight": 0.0096,
-        "reported_pct": 0.398,
-        "expected_left": 0.4178,
-        "actual_left": 0.4204,
-        "projected_left": 0.4189,
-        "espriella_votes": 53079,
-        "cepeda_votes": 38498,
-        "leader": "espriella"
-      },
-      {
-        "department": "Casanare",
-        "region": "Orinoquía-Amazonía",
-        "weight": 0.0086,
-        "reported_pct": 0.4275,
-        "expected_left": 0.3278,
-        "actual_left": 0.3256,
-        "projected_left": 0.3269,
-        "espriella_votes": 59707,
-        "cepeda_votes": 28828,
-        "leader": "espriella"
-      },
-      {
-        "department": "Putumayo",
-        "region": "Orinoquía-Amazonía",
-        "weight": 0.0067,
-        "reported_pct": 0.8572,
-        "expected_left": 0.5478,
-        "actual_left": 0.5435,
-        "projected_left": 0.5441,
-        "espriella_votes": 63023,
-        "cepeda_votes": 75043,
-        "leader": "cepeda"
-      },
-      {
-        "department": "Arauca",
-        "region": "Orinoquía-Amazonía",
-        "weight": 0.0058,
-        "reported_pct": 0.9141,
-        "expected_left": 0.4178,
-        "actual_left": 0.3906,
-        "projected_left": 0.393,
-        "espriella_votes": 76904,
-        "cepeda_votes": 49297,
-        "leader": "espriella"
-      },
-      {
-        "department": "San Andrés y Providencia",
-        "region": "Caribe",
-        "weight": 0.0019,
-        "reported_pct": 0.5409,
-        "expected_left": 0.4778,
-        "actual_left": 0.4666,
-        "projected_left": 0.4718,
-        "espriella_votes": 13277,
-        "cepeda_votes": 11615,
-        "leader": "espriella"
-      },
-      {
-        "department": "Guaviare",
-        "region": "Orinoquía-Amazonía",
-        "weight": 0.0019,
-        "reported_pct": 0.4554,
-        "expected_left": 0.3978,
-        "actual_left": 0.3668,
-        "projected_left": 0.3837,
-        "espriella_votes": 13272,
-        "cepeda_votes": 7687,
-        "leader": "espriella"
-      },
-      {
-        "department": "Vichada",
-        "region": "Orinoquía-Amazonía",
-        "weight": 0.0014,
-        "reported_pct": 0.6079,
-        "expected_left": 0.4478,
-        "actual_left": 0.4551,
-        "projected_left": 0.4522,
-        "espriella_votes": 11433,
-        "cepeda_votes": 9548,
-        "leader": "espriella"
-      },
-      {
-        "department": "Amazonas",
-        "region": "Orinoquía-Amazonía",
-        "weight": 0.0014,
-        "reported_pct": 0.5478,
-        "expected_left": 0.4778,
-        "actual_left": 0.4632,
-        "projected_left": 0.4698,
-        "espriella_votes": 10150,
-        "cepeda_votes": 8758,
-        "leader": "espriella"
-      },
-      {
-        "department": "Guainía",
-        "region": "Orinoquía-Amazonía",
-        "weight": 0.001,
-        "reported_pct": 0.4544,
-        "expected_left": 0.4778,
-        "actual_left": 0.4401,
-        "projected_left": 0.4607,
-        "espriella_votes": 5854,
-        "cepeda_votes": 4602,
-        "leader": "espriella"
-      },
-      {
-        "department": "Vaupés",
-        "region": "Orinoquía-Amazonía",
-        "weight": 0.001,
-        "reported_pct": 0.5908,
-        "expected_left": 0.5478,
-        "actual_left": 0.5343,
-        "projected_left": 0.5398,
-        "espriella_votes": 6331,
-        "cepeda_votes": 7264,
-        "leader": "cepeda"
-      },
-      {
-        "department": "Exterior",
-        "region": "Exterior",
-        "weight": 0.0211,
-        "reported_pct": 0.4553,
-        "expected_left": 0.4278,
-        "actual_left": 0.4178,
-        "projected_left": 0.4233,
-        "espriella_votes": 134186,
-        "cepeda_votes": 96282,
-        "leader": "espriella"
-      }
-    ],
+    "counted_only_cepeda_two_way": 57.59,
+    "counted_only_espriella_two_way": 42.41,
+    "departments": [],
     "regions": [
       {
         "region": "Pacífico",
         "color": "#3498db",
-        "projected_left": 0.5705,
-        "reported_pct": 0.2019,
-        "espriella_votes": 269521,
-        "cepeda_votes": 506453,
+        "projected_left": 0.5717,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
         "leader": "cepeda"
       },
       {
         "region": "Caribe",
         "color": "#1abc9c",
-        "projected_left": 0.5368,
-        "reported_pct": 0.4608,
-        "espriella_votes": 1079614,
-        "cepeda_votes": 1242489,
+        "projected_left": 0.5393,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
         "leader": "cepeda"
       },
       {
         "region": "Andina Centro",
         "color": "#9b59b6",
-        "projected_left": 0.4787,
-        "reported_pct": 0.2242,
-        "espriella_votes": 916329,
-        "cepeda_votes": 610457,
+        "projected_left": 0.4774,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
         "leader": "espriella"
       },
       {
         "region": "Exterior",
         "color": "#7f8c8d",
-        "projected_left": 0.4233,
-        "reported_pct": 0.4553,
-        "espriella_votes": 134186,
-        "cepeda_votes": 96282,
+        "projected_left": 0.4271,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
         "leader": "espriella"
       },
       {
         "region": "Orinoquía-Amazonía",
         "color": "#27ae60",
-        "projected_left": 0.4062,
-        "reported_pct": 0.5037,
-        "espriella_votes": 390302,
-        "cepeda_votes": 281959,
+        "projected_left": 0.4106,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
         "leader": "espriella"
       },
       {
         "region": "Antioquia-Eje Cafetero",
         "color": "#e74c3c",
-        "projected_left": 0.3607,
-        "reported_pct": 0.2202,
-        "espriella_votes": 591418,
-        "cepeda_votes": 335670,
+        "projected_left": 0.3605,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
         "leader": "espriella"
       },
       {
         "region": "Andina Oriente",
         "color": "#f39c12",
-        "projected_left": 0.3418,
-        "reported_pct": 0.3559,
-        "espriella_votes": 532428,
-        "cepeda_votes": 270059,
+        "projected_left": 0.3482,
+        "reported_pct": 0.0,
+        "espriella_votes": 0,
+        "cepeda_votes": 0,
         "leader": "espriella"
       }
     ]

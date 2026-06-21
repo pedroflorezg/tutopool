@@ -132,7 +132,33 @@ def main() -> None:
                     help="URL template for live department results; may use {dept}")
     ap.add_argument("--simulate", type=float, metavar="NATIONAL_REPORTED_FRACTION",
                     help="ignore the network and synthesise a partial count at this national %% reported (0-1)")
+    ap.add_argument("--boletin", metavar="ESP,CEP,MESAS,LABEL",
+                    help="record a REAL national boletín: de la Espriella%%, Cepeda%%, "
+                         "%% mesas informadas, and a label, e.g. '41.8,56.76,0.09,Boletín 1'")
     args = ap.parse_args()
+
+    # Real official national boletín (national-level, no per-department breakdown).
+    if args.boletin:
+        parts = [p.strip() for p in args.boletin.split(",")]
+        esp_pct, cep_pct, mesas_pct = float(parts[0]), float(parts[1]), float(parts[2])
+        label = parts[3] if len(parts) > 3 else "Boletín"
+        out = {
+            "source": "Registraduría Nacional (preconteo oficial)",
+            "mode": f"OFICIAL — {label}",
+            "captured": datetime.now(timezone.utc).isoformat(),
+            "national": {
+                "espriella_pct": esp_pct,
+                "cepeda_pct": cep_pct,
+                "mesas_pct": mesas_pct,
+                "label": label,
+            },
+            "departments": {},
+        }
+        (DATA / "live_results.json").write_text(
+            json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
+        print(f"[registraduria] recorded official national {label}: "
+              f"Espriella {esp_pct}% / Cepeda {cep_pct}% @ {mesas_pct}% mesas")
+        return
 
     from geo import load_geo
     geo = load_geo()
