@@ -1,0 +1,4 @@
+# transient live election-night snapshot (regenerate with run.py --live)
+data/live_results.json
+__pycache__/
+*.pyc

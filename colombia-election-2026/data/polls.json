@@ -1,0 +1,17 @@
+{
+  "election": "Colombia 2026 Presidential — Runoff (segunda vuelta)",
+  "runoff_date": "2026-06-21",
+  "matchup": ["espriella", "cepeda"],
+  "note": "Head-to-head runoff voting intention. 'blank' = blank/null/undecided where reported. Pollster grades are coarse reliability weights (A best).",
+  "polls": [
+    { "pollster": "AtlasIntel / Semana", "grade": "A",  "n": 3850, "date_start": "2026-06-09", "date_end": "2026-06-11", "espriella": 52.4, "cepeda": 44.4, "blank": 3.2 },
+    { "pollster": "Guarumo / Ecoanalítica", "grade": "B", "n": 3200, "date_start": "2026-06-08", "date_end": "2026-06-11", "espriella": 52.6, "cepeda": 45.0, "blank": 2.4 },
+    { "pollster": "AtlasIntel / Semana", "grade": "A",  "n": 3500, "date_start": "2026-06-05", "date_end": "2026-06-10", "espriella": 52.2, "cepeda": 44.5, "blank": 3.3 },
+    { "pollster": "CNC", "grade": "A", "n": 2400, "date_start": "2026-06-06", "date_end": "2026-06-13", "espriella": 48.6, "cepeda": 44.7, "blank": 6.7 },
+    { "pollster": "Celag Data", "grade": "C", "n": 2200, "date_start": "2026-06-07", "date_end": "2026-06-12", "espriella": 39.7, "cepeda": 40.8, "blank": 19.5 },
+    { "pollster": "Encuesta (consolidado prensa)", "grade": "C", "n": 1500, "date_start": "2026-06-17", "date_end": "2026-06-19", "espriella": 52.6, "cepeda": 45.0, "blank": 2.4 },
+    { "pollster": "AtlasIntel / Semana", "grade": "A", "n": 3300, "date_start": "2026-06-01", "date_end": "2026-06-02", "espriella": 50.3, "cepeda": 42.6, "blank": 7.1 },
+    { "pollster": "CNC (pre-1ra vuelta proj.)", "grade": "B", "n": 2000, "date_start": "2026-05-15", "date_end": "2026-05-22", "espriella": 43.6, "cepeda": 40.9, "blank": 15.5 },
+    { "pollster": "AtlasIntel / Semana (pre-1ra)", "grade": "A", "n": 3000, "date_start": "2026-05-18", "date_end": "2026-05-21", "espriella": 50.0, "cepeda": 41.3, "blank": 8.7 }
+  ]
+}
